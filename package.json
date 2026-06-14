@@ -1,7 +1,7 @@
 {
   "name": "osnova",
   "version": "0.1.0",
-  "description": "Osnova \u2014 git-native collaboration platform (walking skeleton)",
+  "description": "Osnova — git-native collaboration platform (walking skeleton)",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -82,7 +82,7 @@
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
-    "vitest": "^2.1.8"
+    "vitest": "^3.2.6"
   },
   "engines": {
     "node": ">=20.9.0"
