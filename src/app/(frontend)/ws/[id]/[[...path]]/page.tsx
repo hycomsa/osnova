@@ -53,20 +53,24 @@ const STYLE_SWATCH: Record<(typeof THEMES)[number], StylePreview> = {
   neon: { bg: '#08081a', fg: '#b8eaff', heading: '#ff5bd8', accent: '#00e5ff', headingFont: MONO, bodyFont: MONO },
 }
 
-// miniatura dokumentu w danym stylu — realne czcionki, kolory i akcent
+// miniatura stylu — pasek głównych kolorów (nagłówek / akcent / tekst) + podgląd „Aa" na tle stylu
 function StyleSwatch({ s }: { s: (typeof THEMES)[number] }) {
   const c = STYLE_SWATCH[s]
   return (
     <span
-      className="flex h-[52px] w-[72px] shrink-0 flex-col justify-center gap-[3px] overflow-hidden rounded-md border border-black/10 px-2 shadow-sm"
-      style={{ background: c.bg, fontFamily: c.bodyFont }}
+      className="flex h-[52px] w-[72px] shrink-0 flex-col overflow-hidden rounded-md border border-black/10 shadow-sm"
       aria-hidden
     >
-      <span style={{ color: c.heading, fontFamily: c.headingFont, fontWeight: 700, fontSize: 13, lineHeight: 1 }}>Aa</span>
-      <span style={{ color: c.fg, fontSize: 6.5, lineHeight: 1.35, opacity: 0.9 }}>Przykładowy akapit treści dokumentu.</span>
-      <span className="flex items-center gap-1" style={{ fontSize: 6.5, color: c.fg, opacity: 0.9 }}>
-        <span className="inline-block h-[5px] w-[5px] rounded-full" style={{ background: c.accent }} />
-        <span style={{ color: c.accent }}>odnośnik</span>
+      {/* kafelki głównych kolorów stylu */}
+      <span className="flex h-3.5 w-full">
+        <span className="h-full flex-1" style={{ background: c.heading }} />
+        <span className="h-full flex-1" style={{ background: c.accent }} />
+        <span className="h-full flex-1" style={{ background: c.fg }} />
+      </span>
+      {/* podgląd typografii na tle stylu */}
+      <span className="flex flex-1 flex-col justify-center gap-[2px] px-2" style={{ background: c.bg, fontFamily: c.bodyFont }}>
+        <span style={{ color: c.heading, fontFamily: c.headingFont, fontWeight: 700, fontSize: 13, lineHeight: 1 }}>Aa</span>
+        <span style={{ color: c.accent, fontSize: 7, lineHeight: 1 }}>odnośnik</span>
       </span>
     </span>
   )
