@@ -66,7 +66,8 @@ links to any heading, Mermaid diagrams, inline PDFs, and collapsible blocks.
 
 </div>
 
-Inline and document-level comments, `@mentions`, reactions, approvals with stale-revision
+Inline and document-level comments, `@mentions`, reactions, and a review workflow
+(approve / reject with an optional thread comment / optional in-review) with stale-revision
 detection — and **live presence** so you can see who's in the document with you.
 
 <div align="center">
