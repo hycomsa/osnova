@@ -28,6 +28,7 @@ const CLIENT_VIEW_EXCLUDES = [
   '.ai/context/README.md',
   '**/project-config.md',
   '**/state.md',
+  '**/changelog.md',
 ]
 
 export interface RequestUserRef {
