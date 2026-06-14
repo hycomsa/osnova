@@ -132,6 +132,13 @@ const pl = {
   },
   presence: { label: 'Kto teraz ogląda', viewing: 'ogląda', editing: 'edytuje', commenting: 'komentuje' },
   ribbon: { document: 'Dokument', collab: 'Współpraca', knowledge: 'Wiedza', file: 'Plik', collapse: 'Zwiń pasek', expand: 'Rozwiń pasek' },
+  aihealth: {
+    nav: 'Zdrowie AI', title: 'Zdrowie modeli AI', subtitle: 'Konfiguracja i dostępność dostawców LLM (Anthropic, OpenAI, Ollama).',
+    denied: 'Strona dostępna tylko dla administratora systemu.', back: 'Wróć', testAll: 'Testuj wszystkie', test: 'Testuj',
+    activeProvider: 'Aktywny dostawca', active: 'aktywny', notConfigured: 'nieskonfigurowany',
+    noneConfigured: 'Żaden dostawca AI nie jest skonfigurowany. Ustaw klucze w zmiennych środowiskowych.',
+    model: 'Model', baseUrl: 'Adres bazowy', result: 'Wynik', ok: 'Działa', failed: 'Błąd',
+  },
   reports: {
     title: 'Raporty akceptacji', subtitle: 'Status zatwierdzania dokumentów przez klienta — ogólnie i wg typu.',
     nav: 'Raporty', back: 'Wróć do workspace', denied: 'Brak uprawnień do raportów w tym workspace.',
@@ -288,6 +295,13 @@ const en: typeof pl = {
   },
   presence: { label: 'Who is viewing now', viewing: 'viewing', editing: 'editing', commenting: 'commenting' },
   ribbon: { document: 'Document', collab: 'Collaboration', knowledge: 'Knowledge', file: 'File', collapse: 'Collapse toolbar', expand: 'Expand toolbar' },
+  aihealth: {
+    nav: 'AI health', title: 'AI model health', subtitle: 'Configuration and availability of LLM providers (Anthropic, OpenAI, Ollama).',
+    denied: 'This page is available to system administrators only.', back: 'Back', testAll: 'Test all', test: 'Test',
+    activeProvider: 'Active provider', active: 'active', notConfigured: 'not configured',
+    noneConfigured: 'No AI provider is configured. Set the keys in environment variables.',
+    model: 'Model', baseUrl: 'Base URL', result: 'Result', ok: 'Working', failed: 'Error',
+  },
   reports: {
     title: 'Acceptance reports', subtitle: 'Client document approval status — overall and by document type.',
     nav: 'Reports', back: 'Back to workspace', denied: 'You don\'t have permission to view reports in this workspace.',
@@ -444,6 +458,13 @@ const de: typeof pl = {
   },
   presence: { label: 'Wer gerade ansieht', viewing: 'sieht an', editing: 'bearbeitet', commenting: 'kommentiert' },
   ribbon: { document: 'Dokument', collab: 'Zusammenarbeit', knowledge: 'Wissen', file: 'Datei', collapse: 'Leiste einklappen', expand: 'Leiste ausklappen' },
+  aihealth: {
+    nav: 'KI-Status', title: 'KI-Modell-Status', subtitle: 'Konfiguration und Verfügbarkeit der LLM-Anbieter (Anthropic, OpenAI, Ollama).',
+    denied: 'Diese Seite ist nur für Systemadministratoren verfügbar.', back: 'Zurück', testAll: 'Alle testen', test: 'Testen',
+    activeProvider: 'Aktiver Anbieter', active: 'aktiv', notConfigured: 'nicht konfiguriert',
+    noneConfigured: 'Kein KI-Anbieter konfiguriert. Setzen Sie die Schlüssel in den Umgebungsvariablen.',
+    model: 'Modell', baseUrl: 'Basis-URL', result: 'Ergebnis', ok: 'Funktioniert', failed: 'Fehler',
+  },
   reports: {
     title: 'Abnahme-Berichte', subtitle: 'Freigabestatus der Dokumente durch den Kunden — gesamt und nach Dokumenttyp.',
     nav: 'Berichte', back: 'Zurück zum Workspace', denied: 'Sie haben keine Berechtigung für Berichte in diesem Workspace.',

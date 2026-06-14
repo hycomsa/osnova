@@ -1,10 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk'
+import { anyProviderConfigured, complete } from './providers'
 
-// Model do wcielania komentarzy (potwierdzone z użytkownikiem: Sonnet 4.6). Nadpisywalny przez env.
-const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6'
-
+// AI skonfigurowane, gdy działa dowolny dostawca (Anthropic / OpenAI / Ollama).
 export function aiConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY)
+  return anyProviderConfigured()
 }
 
 export interface AcceptedComment {
@@ -39,14 +37,7 @@ function unwrapFence(s: string): string {
 
 export async function applyCommentsWithAI(doc: string, comments: AcceptedComment[], skillInstruction?: string): Promise<string> {
   if (!aiConfigured()) throw new Error('AI_NOT_CONFIGURED')
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   const system = skillInstruction?.trim() ? `${SYSTEM}\n\nWYBRANY TRYB: ${skillInstruction.trim()}` : SYSTEM
-  const res = await client.messages.create({
-    model: MODEL,
-    max_tokens: 8192,
-    system,
-    messages: [{ role: 'user', content: buildUserPrompt(doc, comments) }],
-  })
-  const text = res.content.filter((b) => b.type === 'text').map((b) => (b as { text: string }).text).join('')
+  const text = await complete({ system, user: buildUserPrompt(doc, comments), maxTokens: 8192 })
   return unwrapFence(text.trim())
 }

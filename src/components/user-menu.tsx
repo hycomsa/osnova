@@ -1,7 +1,7 @@
 'use client'
 
 import { useTheme } from 'next-themes'
-import { ChevronDown, LogOut, Monitor, Moon, ShieldCheck, Sun } from 'lucide-react'
+import { Activity, ChevronDown, LogOut, Monitor, Moon, ShieldCheck, Sun } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { LanguageSwitcher, useTranslation } from '@/i18n/client'
 import { Avatar } from './ui/avatar'
@@ -96,6 +96,10 @@ export function UserMenu() {
               <a href="/admin" className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-secondary/60" role="menuitem">
                 <ShieldCheck size={15} className="text-muted-foreground" />
                 {t('nav.admin')}
+              </a>
+              <a href="/ai-health" className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-secondary/60" role="menuitem">
+                <Activity size={15} className="text-muted-foreground" />
+                {t('aihealth.nav')}
               </a>
             </div>
           )}
