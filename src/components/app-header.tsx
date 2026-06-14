@@ -98,19 +98,21 @@ export function AppHeader({ workspace, onSearch }: { workspace?: { id?: string; 
         </>
       )}
 
+      {/* Szeroki pasek wyszukiwania wypełniający wolną przestrzeń nagłówka (otwiera paletę ⌘K). */}
+      {onSearch && (
+        <button
+          onClick={onSearch}
+          title={t('viewer.search')}
+          aria-label={t('viewer.search')}
+          className="mx-2 flex min-w-0 max-w-2xl flex-1 items-center gap-2 rounded-md border border-input bg-background/60 px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-ring/60 hover:bg-secondary/40 hover:text-foreground"
+        >
+          <Search size={15} className="shrink-0" />
+          <span className="min-w-0 flex-1 truncate text-left">{t('viewer.searchDocs')}</span>
+          <kbd className="hidden shrink-0 rounded border border-border bg-secondary/60 px-1 font-mono text-[10px] sm:inline">⌘K</kbd>
+        </button>
+      )}
+
       <nav className="ml-auto flex items-center gap-1.5 text-sm sm:gap-2">
-        {onSearch && (
-          <button
-            onClick={onSearch}
-            title={t('viewer.search')}
-            aria-label={t('viewer.search')}
-            className="flex items-center gap-2 rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
-          >
-            <Search size={14} />
-            <span className="hidden md:inline">{t('viewer.search')}</span>
-            <kbd className="hidden rounded border border-border bg-secondary/60 px-1 font-mono text-[10px] md:inline">⌘K</kbd>
-          </button>
-        )}
         {/* redundant na mobile (logo i switcher prowadzą do listy) — ukryj by nie ścieśniać nagłówka */}
         <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link href="/">{t('nav.workspaces')}</Link></Button>
         <NotificationsBell />
