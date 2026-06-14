@@ -207,6 +207,7 @@ export interface Membership {
         | 'props-view'
         | 'props-edit'
         | 'history-view'
+        | 'reports-view'
         | 'ai-use'
       )[]
     | null;
@@ -227,6 +228,7 @@ export interface Membership {
         | 'props-view'
         | 'props-edit'
         | 'history-view'
+        | 'reports-view'
         | 'ai-use'
       )[]
     | null;

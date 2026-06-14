@@ -15,6 +15,7 @@ const PERMISSION_OPTIONS = [
   { label: 'Podgląd właściwości', value: 'props-view' },
   { label: 'Edycja właściwości', value: 'props-edit' },
   { label: 'Historia / blame', value: 'history-view' },
+  { label: 'Raporty / statystyki', value: 'reports-view' },
   { label: 'Użycie AI', value: 'ai-use' },
 ]
 

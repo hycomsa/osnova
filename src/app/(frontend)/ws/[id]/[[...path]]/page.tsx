@@ -3,7 +3,7 @@
 import { type MouseEvent as ReactMouseEvent, type ReactNode, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Check, ChevronDown, ChevronUp, Copy, Edit3, FileQuestion, History as HistoryIcon, Lock, Menu, MessageSquare, MoreHorizontal, Network, Palette, PanelLeftClose, PanelLeftOpen, Printer, SlidersHorizontal, Sparkles, TriangleAlert, Users } from 'lucide-react'
+import { BarChart3, Check, ChevronDown, ChevronUp, Copy, Edit3, FileQuestion, History as HistoryIcon, Lock, Menu, MessageSquare, MoreHorizontal, Network, Palette, PanelLeftClose, PanelLeftOpen, Printer, SlidersHorizontal, Sparkles, TriangleAlert, Users } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { AppHeader } from '@/components/app-header'
 import { Button } from '@/components/ui/button'
@@ -87,6 +87,7 @@ interface TreeResponse {
   canManage?: boolean
   canManageMembers?: boolean
   canUseAI?: boolean
+  canViewReports?: boolean
   revision?: string | null
   workspaceName?: string
   workspaceSlug?: string
@@ -607,6 +608,12 @@ function WorkspaceView() {
                 <Link href={`/ws/${id}/members`} title={t('members.manage')} aria-label={t('members.manage')}
                   className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
                   <Users size={16} />
+                </Link>
+              )}
+              {tree.canViewReports && (
+                <Link href={`/ws/${id}/reports`} title={t('reports.title')} aria-label={t('reports.title')}
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                  <BarChart3 size={16} />
                 </Link>
               )}
               {active && !editing && openError === null && (

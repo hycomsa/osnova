@@ -28,9 +28,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const canManageMembers = hasPermission(ctx.permissions, 'ws-admin', ctx.isSystemAdmin)
     // „Wciel komentarze (AI)" wymaga prawa edycji + uprawnienia ai-use; przycisk pokazujemy tylko gdy AI skonfigurowane
     const canUseAI = canEdit(ctx.permissions, ctx.isSystemAdmin) && hasPermission(ctx.permissions, 'ai-use', ctx.isSystemAdmin) && aiConfigured()
+    const canViewReports = hasPermission(ctx.permissions, 'reports-view', ctx.isSystemAdmin)
     let revision: string | null = null
     try { revision = await currentRevision(ctx.worktreeDir) } catch { revision = null }
-    return NextResponse.json({ view: ctx.view, allowedViews: ctx.allowedViews, files, nodes, canManage, canManageMembers, canUseAI, revision, workspaceName: ctx.workspaceName, workspaceSlug: ctx.workspaceSlug })
+    return NextResponse.json({ view: ctx.view, allowedViews: ctx.allowedViews, files, nodes, canManage, canManageMembers, canUseAI, canViewReports, revision, workspaceName: ctx.workspaceName, workspaceSlug: ctx.workspaceSlug })
   } catch (e) {
     return toErrorResponse(e)
   }

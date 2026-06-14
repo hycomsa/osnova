@@ -41,6 +41,7 @@ export type Permission =
   | 'props-view'
   | 'props-edit'
   | 'history-view'
+  | 'reports-view'
   | 'view-direct'
   | 'ws-admin'
   | 'ai-use'
@@ -50,7 +51,7 @@ export const ALL_PERMISSIONS: Permission[] = [
   'read', 'comment', 'approve',
   'edit-wysiwyg', 'edit-raw',
   'page-create', 'page-delete', 'page-rename', 'page-duplicate',
-  'props-view', 'props-edit', 'history-view',
+  'props-view', 'props-edit', 'history-view', 'reports-view',
   'view-direct', 'ai-use', 'ws-admin',
 ]
 
@@ -59,14 +60,14 @@ export const MANAGEABLE_PERMISSIONS: Permission[] = [
   'comment', 'approve',
   'edit-wysiwyg', 'edit-raw',
   'page-create', 'page-delete', 'page-rename', 'page-duplicate',
-  'props-view', 'props-edit', 'history-view', 'ai-use',
+  'props-view', 'props-edit', 'history-view', 'reports-view', 'ai-use',
 ]
 
 const ROLE_PERMISSIONS: Record<WorkspaceRole, Permission[]> = {
   workspace_maintainer: [
     'read', 'comment', 'approve', 'edit-wysiwyg', 'edit-raw',
     'page-create', 'page-delete', 'page-rename', 'page-duplicate',
-    'props-view', 'props-edit', 'history-view', 'view-direct', 'ai-use', 'ws-admin',
+    'props-view', 'props-edit', 'history-view', 'reports-view', 'view-direct', 'ai-use', 'ws-admin',
   ],
   editor: [
     'read', 'comment', 'edit-wysiwyg', 'edit-raw',

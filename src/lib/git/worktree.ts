@@ -234,6 +234,21 @@ export async function fileRevision(dir: string, relPath: string): Promise<string
   return out.trim() || null
 }
 
+// Mapa ścieżka→SHA ostatniego commita w JEDNYM przejściu logu (masowe wykrycie „stale" w raportach,
+// bez wywoływania fileRevision per plik). Dla zwykłej liniowej historii w pełni wystarcza.
+export async function fileCommitShas(dir: string): Promise<Map<string, string>> {
+  const out = await simpleGit(dir).raw(['log', '--format=%H', '--name-only'])
+  const map = new Map<string, string>()
+  let cur = ''
+  for (const line of out.split('\n')) {
+    const l = line.trim()
+    if (!l) continue
+    if (/^[0-9a-f]{40}$/i.test(l)) { cur = l; continue }
+    if (cur && !map.has(l)) map.set(l, cur) // pierwszy napotkany = najnowszy commit dla ścieżki
+  }
+  return map
+}
+
 export interface Revision {
   sha: string
   author: string

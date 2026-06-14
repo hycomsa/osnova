@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   ALL_VIEWS, allowedViews, canAccessView, canEdit, effectivePermissions, effectiveViews,
-  hasPermission, isClientOnly, type Permission, type WorkspaceRole,
+  hasPermission, isClientOnly, MANAGEABLE_PERMISSIONS, type Permission, type WorkspaceRole,
 } from '@/lib/roles'
 
 const perms = (roles: WorkspaceRole[], g: Permission[] = [], r: Permission[] = [], admin = false) =>
@@ -39,6 +39,14 @@ describe('uprawnienia wg ról (efektywne)', () => {
   it('klient techniczny widzi historię, biznesowy nie', () => {
     expect(hasPermission(perms(['client_technical']), 'history-view')).toBe(true)
     expect(hasPermission(perms(['client_business']), 'history-view')).toBe(false)
+  })
+  it('raporty: domyślnie tylko opiekun; nadawalne i nie eskalujące', () => {
+    expect(hasPermission(perms(['workspace_maintainer']), 'reports-view')).toBe(true)
+    expect(hasPermission(perms(['editor']), 'reports-view')).toBe(false)
+    expect(hasPermission(perms(['client_technical']), 'reports-view')).toBe(false)
+    expect(MANAGEABLE_PERMISSIONS).toContain('reports-view')
+    // nadanie klientowi działa
+    expect(hasPermission(perms(['client_business'], ['reports-view']), 'reports-view')).toBe(true)
   })
   it('system-admin ma wszystko', () => {
     expect(hasPermission([], 'edit-raw', true)).toBe(true)
