@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { PushConflict, WriteConflict } from './git/worktree'
+import { PushConflict, RemoteUnavailable, WriteConflict } from './git/worktree'
 import { AccessDenied, Conflict, NotFound } from './read-service'
 
 export function toErrorResponse(e: unknown): NextResponse {
@@ -14,6 +14,12 @@ export function toErrorResponse(e: unknown): NextResponse {
     return NextResponse.json(
       { error: 'Conflict', message: 'Plik został w międzyczasie zmieniony zdalnie. Odśwież i nanieś zmiany ponownie.' },
       { status: 409 },
+    )
+  // zdalne nieosiągalne (sieć/DNS/uprawnienia) — nie konflikt; nie otwieramy kreatora scalania
+  if (e instanceof RemoteUnavailable)
+    return NextResponse.json(
+      { error: 'RemoteUnavailable', message: 'Nie udało się połączyć ze zdalnym repozytorium. Sprawdź sieć/uprawnienia i spróbuj ponownie.' },
+      { status: 503 },
     )
   console.error('[osnova] internal error:', e)
   return NextResponse.json({ error: 'Internal error' }, { status: 500 })

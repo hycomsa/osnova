@@ -76,6 +76,18 @@ export class PushConflict extends Error {
   code = 'PUSH_CONFLICT' as const
 }
 
+// Zdalne repozytorium nieosiągalne lub odmowa (sieć/DNS/uwierzytelnianie) — NIE jest to
+// konflikt treści (nie otwieramy kreatora scalania). Czytelny komunikat dla użytkownika.
+export class RemoteUnavailable extends Error {
+  code = 'REMOTE_UNAVAILABLE' as const
+}
+
+// Czy błąd push to odrzucenie „non-fast-forward" (zdalne się ruszyło) — wtedy próbujemy rebase.
+// Inne błędy (DNS/sieć/uwierzytelnianie) traktujemy jako niedostępność zdalnego.
+function isNonFastForward(msg: string): boolean {
+  return /non-fast-forward|\[rejected\]|fetch first|Updates were rejected|cannot lock ref|failed to push some refs/i.test(msg)
+}
+
 // Konflikt zapisu treści, gdy automatyczny rebase/merge się nie powiódł — niesie obie
 // wersje (twoją i zdalną) oraz bazę, by frontend mógł poprowadzić użytkownika przez
 // rozwiązanie bez znajomości Git (FR-19a, US-21).
@@ -112,12 +124,20 @@ async function commitPushRetry(
   await git.raw([...ident, 'commit', '-m', message])
   try {
     await git.push('origin', branch)
-  } catch {
-    // remote się ruszył — rebase i ponów
+  } catch (e) {
+    // tylko odrzucenie non-fast-forward oznacza, że zdalne się ruszyło → rebase i ponów;
+    // sieć/DNS/uwierzytelnianie → zdalne niedostępne (nie konflikt treści)
+    if (!isNonFastForward(String((e as Error)?.message || ''))) {
+      throw new RemoteUnavailable('Nie udało się połączyć ze zdalnym repozytorium (sieć lub uprawnienia).')
+    }
     try {
       await git.raw([...ident, 'pull', '--rebase', 'origin', branch])
-    } catch {
+    } catch (e2) {
       await git.raw(['rebase', '--abort']).catch(() => {})
+      // rebase nie powiódł się z powodów sieciowych, nie treściowych → niedostępność, nie konflikt
+      if (!/conflict|CONFLICT|could not apply|merge/i.test(String((e2 as Error)?.message || ''))) {
+        throw new RemoteUnavailable('Nie udało się pobrać zmian ze zdalnego repozytorium (sieć lub uprawnienia).')
+      }
       throw new PushConflict('Konflikt podczas scalania zmian zdalnych')
     }
     await git.push('origin', branch)
