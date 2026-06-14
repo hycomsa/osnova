@@ -8,8 +8,8 @@ export interface ReportFilters {
   to?: string | null // ISO date (inclusive)
 }
 
-export interface ReportTotals { inScope: number; approved: number; stale: number; changesRequested: number; pending: number }
-export interface DocTypeRow { docType: string; approved: number; stale: number; changesRequested: number; pending: number; total: number }
+export interface ReportTotals { inScope: number; approved: number; stale: number; rejected: number; inReview: number; pending: number }
+export interface DocTypeRow { docType: string; approved: number; stale: number; rejected: number; inReview: number; pending: number; total: number }
 export interface TimeBucket { bucket: string; acceptedInBucket: number; cumulativeApproved: number }
 export interface ApproverRow { approver: string; name: string | null; accepted: number; total: number }
 export interface StatusApproverSeg { status: DocStatus; approver: string | null; name: string | null; count: number }
@@ -23,7 +23,7 @@ export interface ReportData {
 }
 
 export const NO_TYPE = '—' // dokumenty bez `doc-type`
-const STATUS_ORDER: DocStatus[] = ['approved', 'stale', 'changes_requested', 'pending']
+const STATUS_ORDER: DocStatus[] = ['approved', 'stale', 'rejected', 'in_review', 'pending']
 const isAccepted = (s: DocStatus) => s === 'approved' || s === 'stale'
 
 const bucketOf = (iso: string) => iso.slice(0, 7) // YYYY-MM
@@ -43,19 +43,20 @@ export function aggregate(all: ReportDoc[], f: ReportFilters = {}): ReportData {
 
   const scoped = all.filter((d) => matchesType(d) && matchesApprover(d))
 
-  const totals: ReportTotals = { inScope: scoped.length, approved: 0, stale: 0, changesRequested: 0, pending: 0 }
+  const totals: ReportTotals = { inScope: scoped.length, approved: 0, stale: 0, rejected: 0, inReview: 0, pending: 0 }
   const typeMap = new Map<string, DocTypeRow>()
-  const bump = (row: { approved: number; stale: number; changesRequested: number; pending: number }, s: DocStatus) => {
+  const bump = (row: { approved: number; stale: number; rejected: number; inReview: number; pending: number }, s: DocStatus) => {
     if (s === 'approved') row.approved++
     else if (s === 'stale') row.stale++
-    else if (s === 'changes_requested') row.changesRequested++
+    else if (s === 'rejected') row.rejected++
+    else if (s === 'in_review') row.inReview++
     else row.pending++
   }
   for (const d of scoped) {
     bump(totals, d.status)
     const key = d.docType ?? NO_TYPE
     let row = typeMap.get(key)
-    if (!row) { row = { docType: key, approved: 0, stale: 0, changesRequested: 0, pending: 0, total: 0 }; typeMap.set(key, row) }
+    if (!row) { row = { docType: key, approved: 0, stale: 0, rejected: 0, inReview: 0, pending: 0, total: 0 }; typeMap.set(key, row) }
     row.total++
     bump(row, d.status)
   }

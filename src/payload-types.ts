@@ -331,7 +331,7 @@ export interface Approval {
   workspace: number | Workspace;
   path: string;
   revision?: string | null;
-  status: 'approved' | 'changes_requested';
+  status: 'in_review' | 'approved' | 'rejected' | 'changes_requested';
   note?: string | null;
   authorSub: string;
   authorName?: string | null;

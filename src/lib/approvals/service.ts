@@ -5,8 +5,19 @@ import { commitAndPush, fileRevision, readRepoFile } from '../git/worktree'
 import { extractFrontmatter } from '../markdown/render'
 import { canApprove } from '../roles'
 import { AccessDenied, type WorkspaceContext } from '../read-service'
+import { createComment } from '../comments/service'
 
-export type ApprovalStatus = 'approved' | 'changes_requested'
+export type ApprovalStatus = 'approved' | 'rejected' | 'in_review'
+
+// Prefiks komentarza tworzonego przy odrzuceniu (zapisywany jako zwykły komentarz dokumentu).
+const REJECT_COMMENT_PREFIX = '❌ Odrzucono:'
+
+// Normalizuje status: legacy 'changes_requested' → 'rejected'; nieznane → null.
+function normalizeStatus(s: unknown): ApprovalStatus | null {
+  if (s === 'approved' || s === 'rejected' || s === 'in_review') return s
+  if (s === 'changes_requested') return 'rejected'
+  return null
+}
 
 export interface Approver { id: string | number; name?: string | null; email: string }
 
@@ -40,7 +51,7 @@ export function readApprovalStamp(meta: Record<string, unknown> | null | undefin
   const raw = meta?.['approval']
   if (!raw || typeof raw !== 'object') return null
   const a = raw as Record<string, unknown>
-  const status = a.status === 'approved' || a.status === 'changes_requested' ? a.status : null
+  const status = normalizeStatus(a.status)
   if (!status) return null
   const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null)
   return { status, by: str(a.by), name: str(a.name), date: str(a.date), note: str(a.note) }
@@ -63,7 +74,7 @@ async function writeApprovalStamp(ctx: WorkspaceContext, path: string, stamp: Ap
   return commitAndPush({
     dir: ctx.worktreeDir, relPath: path, content, branch: ctx.branch,
     authorName: author.name || author.email, authorEmail: author.email,
-    message: `osnova: ${stamp.status === 'approved' ? 'akceptacja' : 'zmiany'} ${path}`,
+    message: `osnova: ${stamp.status === 'approved' ? 'akceptacja' : stamp.status === 'rejected' ? 'odrzucenie' : 'w recenzji'} ${path}`,
     detectConflict: true,
   })
 }
@@ -90,7 +101,7 @@ export async function getApproval(payload: Payload, ctx: WorkspaceContext, path:
   try { cur = await fileRevision(ctx.worktreeDir, path) } catch { cur = null }
   const canApp = canApprove(ctx.permissions, ctx.isSystemAdmin)
 
-  const status = (stamp?.status ?? row?.status ?? null) as ApprovalStatus | null
+  const status = (stamp?.status ?? normalizeStatus(row?.status) ?? null) as ApprovalStatus | null
   if (!status) {
     return { status: null, revision: null, note: null, authorName: null, authorEmail: null, createdAt: null, currentRevision: cur, stale: false, canApprove: canApp }
   }
@@ -112,8 +123,8 @@ export async function getApproval(payload: Payload, ctx: WorkspaceContext, path:
 async function notifyApproval(payload: Payload, ctx: WorkspaceContext, user: Approver, path: string, status: ApprovalStatus, note: string | undefined): Promise<void> {
   const members = await payload.find({ collection: 'memberships', where: { workspace: { equals: ctx.workspaceId } }, depth: 1, limit: 200, overrideAccess: true })
   // typ niesie czasownik (tłumaczony w dzwonku per-język); ewentualna uwaga trafia do excerpt
-  const type = status === 'approved' ? 'approval_approved' : 'approval_changes'
-  const excerpt = status === 'changes_requested' ? (note?.trim()?.slice(0, 160) || undefined) : undefined
+  const type = status === 'approved' ? 'approval_approved' : 'approval_changes' // odrzucenie używa kanału „changes"
+  const excerpt = status === 'rejected' ? (note?.trim()?.slice(0, 160) || undefined) : undefined
   const wsId = wsNum(ctx)
   const seen = new Set<string>()
   for (const m of members.docs as any[]) {
@@ -133,18 +144,28 @@ async function notifyApproval(payload: Payload, ctx: WorkspaceContext, user: App
 export async function setApproval(payload: Payload, ctx: WorkspaceContext, user: Approver, path: string, status: ApprovalStatus, note?: string): Promise<ApprovalState> {
   if (!canApprove(ctx.permissions, ctx.isSystemAdmin)) throw new AccessDenied('No approve permission')
   if (!isReadable(path, ctx.rules)) throw new AccessDenied('Path outside view')
-  if (status !== 'approved' && status !== 'changes_requested') throw new AccessDenied('Invalid status')
+  if (status !== 'approved' && status !== 'rejected' && status !== 'in_review') throw new AccessDenied('Invalid status')
+  const trimmed = note?.trim() || null
   const stamp: ApprovalStamp = {
-    status, by: user.email, name: user.name ?? null, date: new Date().toISOString(), note: note?.trim() || null,
+    status, by: user.email, name: user.name ?? null, date: new Date().toISOString(), note: trimmed,
   }
   // 1) zapis stempla do frontmattera (źródło prawdy) → SHA commita zatwierdzającego
   const { commit } = await writeApprovalStamp(ctx, path, stamp, user)
   // 2) lustro w bazie (cache: szybkie zapytania + oś czasu + wykrycie „stale")
   await payload.create({
     collection: 'approvals', overrideAccess: true,
-    data: { workspace: wsNum(ctx), path, revision: commit, status, note: note?.trim() || undefined, authorSub: String(user.id), authorName: user.name ?? undefined, authorEmail: user.email } as any,
+    data: { workspace: wsNum(ctx), path, revision: commit, status, note: trimmed ?? undefined, authorSub: String(user.id), authorName: user.name ?? undefined, authorEmail: user.email } as any,
   })
-  try { await notifyApproval(payload, ctx, user, path, status, note) } catch { /* powiadomienia nie blokują akceptacji */ }
+  // 3) odrzucenie z uwagą → dodatkowo zwykły komentarz dokumentu z prefiksem akcji (best-effort)
+  if (status === 'rejected' && trimmed) {
+    try {
+      await createComment(payload, ctx, user, { path, kind: 'document', body: `${REJECT_COMMENT_PREFIX} ${trimmed}` })
+    } catch { /* brak uprawnienia do komentarzy nie blokuje odrzucenia */ }
+  }
+  // „w recenzji" to lekki, opcjonalny marker — bez powiadomień
+  if (status !== 'in_review') {
+    try { await notifyApproval(payload, ctx, user, path, status, note) } catch { /* powiadomienia nie blokują akcji */ }
+  }
   return getApproval(payload, ctx, path)
 }
 

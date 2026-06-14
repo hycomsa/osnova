@@ -26,8 +26,10 @@ export const Approvals: CollectionConfig = {
       type: 'select',
       required: true,
       options: [
+        { label: 'W recenzji', value: 'in_review' },
         { label: 'Zatwierdzony', value: 'approved' },
-        { label: 'Poproszono o zmiany', value: 'changes_requested' },
+        { label: 'Odrzucony', value: 'rejected' },
+        { label: 'Poproszono o zmiany (legacy)', value: 'changes_requested' },
       ],
     },
     { name: 'note', type: 'textarea', label: 'Uwaga' },

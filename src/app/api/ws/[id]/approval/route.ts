@@ -34,7 +34,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if ('error' in r) return r.error
   let body: any
   try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
-  if (!body.path || (body.status !== 'approved' && body.status !== 'changes_requested')) {
+  if (!body.path || !['approved', 'rejected', 'in_review'].includes(body.status)) {
     return NextResponse.json({ error: 'Missing path/status' }, { status: 400 })
   }
   try {
