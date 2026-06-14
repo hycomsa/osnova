@@ -131,9 +131,11 @@
 /* kontener tabeli: przewijanie poziome, gdy tabela jest szersza niż dostępna kolumna */
 .doc-content .doc-table-wrap { margin: 1.1em auto; overflow-x: auto; }
 .doc-content .doc-table-wrap > table { margin: 0; }
-/* width:max-content → tabela bierze naturalną szerokość kolumn (bez ściskania); min-width:100% → wypełnia kontener */
-.doc-content table { border-collapse: collapse; margin: 1.1em auto; width: max-content; min-width: 100%; font-size: 0.95em; }
-.doc-content th, .doc-content td { border: 1px solid var(--doc-border); padding: 0.4rem 0.7rem; text-align: left; vertical-align: top; }
+/* tabela dopasowuje się do dostępnej szerokości; długie komórki zawijają się zamiast tworzyć
+   ekstremalnie szeroki poziomy scroll. .doc-table-wrap zostaje jako bezpiecznik dla tabel,
+   które i tak nie mieszczą się po zawinięciu (dużo kolumn). */
+.doc-content table { border-collapse: collapse; margin: 1.1em auto; width: 100%; max-width: 100%; font-size: 0.95em; }
+.doc-content th, .doc-content td { border: 1px solid var(--doc-border); padding: 0.4rem 0.7rem; text-align: left; vertical-align: top; overflow-wrap: anywhere; word-break: break-word; }
 .doc-content th { background: var(--doc-code-bg); font-weight: 700; }
 
 /* — pozostałe — */
