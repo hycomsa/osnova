@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: osnova-postgres
+    environment:
+      POSTGRES_USER: osnova
+      POSTGRES_PASSWORD: osnova
+      POSTGRES_DB: osnova
+    ports:
+      - "5433:5432"
+    volumes:
+      - osnova_pgdata:/var/lib/postgresql/data
+volumes:
+  osnova_pgdata:

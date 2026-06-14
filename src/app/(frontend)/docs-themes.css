@@ -1,0 +1,379 @@
+/* ============================================================================
+   Style wyświetlania podglądu Markdown (NIEZALEŻNE od motywu jasny/ciemny aplikacji).
+   Każdy styl ustawia własny zestaw zmiennych; baza poniżej zamienia je w typografię.
+   Style różnią się: czcionką, rozmiarem, kolorami, ikonami punktorów, marginesami
+   oraz szerokością kolumny tekstu (measure).
+   ========================================================================== */
+
+.doc-content {
+  /* — zmienne domyślne (nadpisywane przez .docs-style-*) — */
+  --doc-bg: #ffffff;
+  --doc-fg: #1f2328;
+  --doc-muted: #59636e;
+  --doc-heading: #0d1117;
+  --doc-link: #0969da;
+  --doc-accent: #0969da;
+  --doc-border: rgba(0, 0, 0, 0.12);
+  --doc-code-bg: rgba(127, 127, 127, 0.13);
+  --doc-quote-bg: transparent;
+
+  --doc-font: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --doc-heading-font: var(--doc-font);
+  --doc-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  --doc-size: 16px;
+  --doc-leading: 1.7;
+  --doc-measure: 72ch;
+  --doc-wide: 1180px;       /* maks. szerokość bloków „szerokich" (tabele, kod, diagramy) */
+  --doc-pad: 2rem 2.4rem 4rem;
+  --doc-text-align: left;   /* wyrównanie akapitów (left | justify) */
+  --doc-col-ml: auto;       /* pozycja kolumny: auto = wyśrodkowana, 0 = przy lewej krawędzi */
+
+  --doc-h1: 2.1rem;
+  --doc-h2: 1.55rem;
+  --doc-h3: 1.22rem;
+  --doc-h-weight: 700;
+  --doc-h-spacing: 0;
+  --doc-h-transform: none;
+  --doc-h-align: left;      /* wyrównanie nagłówków (left | center) */
+
+  --doc-bullet: "•";
+  --doc-bullet-weight: 700;
+
+  background: var(--doc-bg);
+  color: var(--doc-fg);
+  font-family: var(--doc-font);
+  font-size: var(--doc-size);
+  line-height: var(--doc-leading);
+  padding: var(--doc-pad);
+}
+
+/* kolumna tekstu o stałej szerokości; pozycja zależna od stylu (wyśrodkowana lub przy lewej) */
+.doc-content > * {
+  max-width: var(--doc-measure);
+  margin-left: var(--doc-col-ml);
+  margin-right: auto;
+}
+
+/* bloki „szerokie" wychodzą poza miarę tekstu i mogą zająć całą szerokość kolumny treści
+   (do --doc-wide). Czytelny tekst zostaje wąski, ale tabele/kod/diagramy dostają miejsce. */
+.doc-content > .doc-table-wrap,
+.doc-content > pre,
+.doc-content > .mermaid,
+.doc-content > .pdf-embed {
+  max-width: min(100%, var(--doc-wide));
+}
+
+/* — nagłówki — */
+.doc-content h1,
+.doc-content h2,
+.doc-content h3,
+.doc-content h4,
+.doc-content h5,
+.doc-content h6 {
+  font-family: var(--doc-heading-font);
+  color: var(--doc-heading);
+  font-weight: var(--doc-h-weight);
+  letter-spacing: var(--doc-h-spacing);
+  line-height: 1.25;
+  margin: 1.7em 0 0.55em;
+}
+.doc-content > :first-child { margin-top: 0; }
+.doc-content h1, .doc-content h2, .doc-content h3 { text-align: var(--doc-h-align); }
+.doc-content h1 { font-size: var(--doc-h1); text-transform: var(--doc-h-transform); }
+.doc-content h2 { font-size: var(--doc-h2); }
+.doc-content h3 { font-size: var(--doc-h3); }
+.doc-content h4 { font-size: 1.05rem; }
+.doc-content h5, .doc-content h6 { font-size: 0.95rem; color: var(--doc-muted); }
+
+/* — akapity, linki — */
+.doc-content p { margin: 0 auto 1em; text-align: var(--doc-text-align); }
+/* przy justowaniu nie rozjeżdżaj ostatniej, krótkiej linii i dziel długie słowa */
+.doc-content p { hyphens: auto; }
+.doc-content a { color: var(--doc-link); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+.doc-content a:hover { text-decoration-thickness: 2px; }
+.doc-content strong { font-weight: 700; }
+
+/* — listy z punktorami sterowanymi zmienną — */
+.doc-content ul { list-style: none; padding-left: 1.5rem; margin: 0 auto 1em; }
+.doc-content ul > li { position: relative; margin: 0.3em 0; }
+.doc-content ul > li::before {
+  content: var(--doc-bullet);
+  position: absolute;
+  left: -1.3rem;
+  color: var(--doc-accent);
+  font-weight: var(--doc-bullet-weight);
+}
+.doc-content ol { padding-left: 1.7rem; margin: 0 auto 1em; }
+.doc-content ol > li { margin: 0.3em 0; }
+.doc-content li > ul, .doc-content li > ol { margin-bottom: 0; }
+/* listy zadań (checkbox) nie dostają własnego punktora ::before */
+.doc-content ul[data-type="taskList"] > li::before,
+.doc-content li.task-list-item::before { content: none; }
+.doc-content ul[data-type="taskList"] { list-style: none; padding-left: 0.25rem; }
+
+/* — cytaty — */
+.doc-content blockquote {
+  border-left: 4px solid var(--doc-accent);
+  background: var(--doc-quote-bg);
+  padding: 0.4rem 1rem;
+  margin: 1.1em auto;
+  color: var(--doc-muted);
+  font-style: italic;
+}
+
+/* — kod — */
+.doc-content code { font-family: var(--doc-mono); font-size: 0.9em; background: var(--doc-code-bg); padding: 0.12em 0.38em; border-radius: 4px; }
+.doc-content pre { font-family: var(--doc-mono); padding: 0.85rem 1rem; overflow: auto; border-radius: 8px; background: var(--doc-code-bg); border: 1px solid var(--doc-border); margin: 1.1em auto; }
+.doc-content pre code { background: transparent; padding: 0; font-size: 0.86rem; }
+
+/* — tabele — */
+/* kontener tabeli: przewijanie poziome, gdy tabela jest szersza niż dostępna kolumna */
+.doc-content .doc-table-wrap { margin: 1.1em auto; overflow-x: auto; }
+.doc-content .doc-table-wrap > table { margin: 0; }
+/* width:max-content → tabela bierze naturalną szerokość kolumn (bez ściskania); min-width:100% → wypełnia kontener */
+.doc-content table { border-collapse: collapse; margin: 1.1em auto; width: max-content; min-width: 100%; font-size: 0.95em; }
+.doc-content th, .doc-content td { border: 1px solid var(--doc-border); padding: 0.4rem 0.7rem; text-align: left; vertical-align: top; }
+.doc-content th { background: var(--doc-code-bg); font-weight: 700; }
+
+/* — pozostałe — */
+.doc-content hr { border: 0; border-top: 1px solid var(--doc-border); margin: 2em auto; }
+.doc-content img { max-width: 100%; height: auto; border-radius: 6px; }
+
+/* — tabela metadanych (frontmatter), gdy widok ma włączone pokazywanie metadanych — */
+.doc-content table.doc-frontmatter {
+  width: auto;
+  margin: 0 auto 1.4em 0;
+  font-size: 0.82em;
+  border: 1px solid var(--doc-border);
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  opacity: 0.85;
+}
+.doc-content table.doc-frontmatter th {
+  background: var(--doc-code-bg);
+  color: var(--doc-muted);
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+  width: 1%;
+}
+.doc-content table.doc-frontmatter td {
+  font-family: var(--doc-mono);
+  word-break: break-all;
+}
+
+/* — callouty (zachowane, czytelne w każdym stylu) — */
+.doc-content .callout { border-left: 4px solid; padding: 0.55rem 1rem; margin: 1.1em auto; border-radius: 6px; }
+.doc-content .callout-note { border-color: #2f81f7; background: rgba(47, 129, 247, 0.1); }
+.doc-content .callout-tip { border-color: #3fb950; background: rgba(63, 185, 80, 0.1); }
+.doc-content .callout-important { border-color: #a371f7; background: rgba(163, 113, 247, 0.1); }
+.doc-content .callout-warning { border-color: #d29922; background: rgba(210, 153, 34, 0.12); }
+.doc-content .callout-caution { border-color: #f85149; background: rgba(248, 81, 73, 0.12); }
+
+/* — składane bloki (callout-foldable: <details>/<summary>) — */
+.doc-content details.callout { padding: 0; overflow: hidden; }
+.doc-content details.callout > summary {
+  cursor: pointer; list-style: none; padding: 0.55rem 1rem; font-weight: 600;
+  display: flex; align-items: center; gap: 0.5rem; user-select: none;
+}
+.doc-content details.callout > summary::-webkit-details-marker { display: none; }
+.doc-content details.callout > summary::before {
+  content: '▸'; font-size: 0.8em; color: var(--doc-muted); transition: transform 0.15s ease;
+}
+.doc-content details.callout[open] > summary::before { transform: rotate(90deg); }
+.doc-content details.callout > summary:hover { filter: brightness(1.05); }
+.doc-content details.callout > :not(summary) { padding: 0 1rem; margin: 0.4em 0; }
+.doc-content details.callout > :last-child { padding-bottom: 0.55rem; }
+
+/* ===========================================================================
+   STYLE
+   ========================================================================== */
+
+/* Czysty — nowoczesny, neutralny, jak GitHub. Średnia kolumna, wyśrodkowana, do lewej. */
+.docs-style-standard {
+  --doc-bg: #ffffff;
+  --doc-fg: #1f2328;
+  --doc-heading: #0d1117;
+  --doc-link: #0969da;
+  --doc-accent: #0969da;
+  --doc-measure: 74ch;
+}
+
+/* Pełna szerokość — nowoczesny sans (styl jak exai.cloud), treść wypełnia całą
+   dostępną szerokość; idealny do stron z szerokimi tabelami o wielu kolumnach. */
+.docs-style-full {
+  --doc-bg: #ffffff;
+  --doc-fg: #1f2937;
+  --doc-muted: #6b7280;
+  --doc-heading: #0f172a;
+  --doc-link: #4f46e5;
+  --doc-accent: #4f46e5;
+  --doc-border: rgba(15, 23, 42, 0.12);
+  --doc-code-bg: rgba(15, 23, 42, 0.06);
+  --doc-quote-bg: rgba(79, 70, 229, 0.05);
+  --doc-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --doc-heading-font: var(--doc-font);
+  --doc-size: 15.5px;
+  --doc-leading: 1.7;
+  --doc-measure: none;       /* bez ograniczenia szerokości kolumny — pełna szerokość */
+  --doc-col-ml: 0;
+  --doc-pad: 2rem 2.6rem 4rem;
+  --doc-h1: 2rem;
+  --doc-h2: 1.45rem;
+  --doc-h3: 1.18rem;
+  --doc-h-weight: 700;
+  --doc-h-spacing: -0.01em;
+  --doc-bullet: "•";
+}
+/* w pełnej szerokości pozwól bardzo szerokim tabelom przewijać się poziomo zamiast łamać */
+.docs-style-full table { display: block; overflow-x: auto; width: 100%; }
+
+/* Lektura — serif, sepia, szeroki interlinia, wąska kolumna do czytania. */
+.docs-style-reading {
+  --doc-bg: #faf4e8;
+  --doc-fg: #43372a;
+  --doc-muted: #7a6a55;
+  --doc-heading: #2d241a;
+  --doc-link: #9a5b2c;
+  --doc-accent: #b06a33;
+  --doc-border: rgba(120, 90, 50, 0.25);
+  --doc-code-bg: rgba(120, 90, 50, 0.12);
+  --doc-quote-bg: rgba(176, 106, 51, 0.07);
+  --doc-font: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --doc-heading-font: var(--doc-font);
+  --doc-size: 18.5px;
+  --doc-leading: 1.95;
+  --doc-measure: 52ch;       /* wąska, książkowa kolumna */
+  --doc-pad: 3rem 2rem 5rem;
+  --doc-text-align: justify; /* tekst justowany jak w książce */
+  --doc-h1: 2.3rem;
+  --doc-h-align: left;
+  --doc-bullet: "—";
+  --doc-bullet-weight: 400;
+}
+
+/* Redakcyjny — magazyn: mocne, wielkie nagłówki sans + serif w treści. */
+.docs-style-editorial {
+  --doc-bg: #fbfbf9;
+  --doc-fg: #1a1a1a;
+  --doc-muted: #6b6b6b;
+  --doc-heading: #111111;
+  --doc-link: #b3261e;
+  --doc-accent: #b3261e;
+  --doc-border: rgba(0, 0, 0, 0.14);
+  --doc-quote-bg: rgba(0, 0, 0, 0.03);
+  --doc-font: "Charter", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --doc-heading-font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --doc-size: 17px;
+  --doc-leading: 1.72;
+  --doc-measure: 62ch;
+  --doc-pad: 2.4rem 2.4rem 4.5rem;
+  --doc-text-align: justify; /* justowane łamy jak w magazynie */
+  --doc-h1: 2.9rem;
+  --doc-h2: 1.8rem;
+  --doc-h-weight: 800;
+  --doc-h-spacing: -0.02em;
+  --doc-h-align: center;     /* wyśrodkowane, mocne nagłówki */
+  --doc-bullet: "▪";
+}
+
+/* Techniczny — gęsty, kompaktowy, szeroki na kod i tabele, chłodne szarości. */
+.docs-style-technical {
+  --doc-bg: #f4f6f8;
+  --doc-fg: #1f2937;
+  --doc-muted: #5b6776;
+  --doc-heading: #0f172a;
+  --doc-link: #0e7490;
+  --doc-accent: #0e7490;
+  --doc-border: rgba(30, 41, 59, 0.2);
+  --doc-code-bg: rgba(15, 23, 42, 0.07);
+  --doc-font: "Inter", "IBM Plex Sans", system-ui, sans-serif;
+  --doc-heading-font: "IBM Plex Mono", var(--doc-mono);
+  --doc-size: 14.5px;
+  --doc-leading: 1.55;
+  --doc-measure: 94ch;       /* szeroki łam na kod i tabele */
+  --doc-col-ml: 0;           /* kolumna przy lewej krawędzi, jak w edytorze kodu */
+  --doc-pad: 1.6rem 2.2rem 4rem;
+  --doc-h1: 1.7rem;
+  --doc-h2: 1.32rem;
+  --doc-h3: 1.1rem;
+  --doc-h-weight: 600;
+  --doc-bullet: "▸";
+}
+
+/* Pastel — miękki, przyjazny, zaokrąglony, fioletowo-różowy. */
+.docs-style-pastel {
+  --doc-bg: #fdf4fb;
+  --doc-fg: #4f4258;
+  --doc-muted: #8a7d96;
+  --doc-heading: #7c3aed;
+  --doc-link: #db2777;
+  --doc-accent: #c026d3;
+  --doc-border: rgba(192, 38, 211, 0.22);
+  --doc-code-bg: rgba(192, 38, 211, 0.09);
+  --doc-quote-bg: rgba(219, 39, 119, 0.06);
+  --doc-font: "Quicksand", "Nunito", "Segoe UI", system-ui, sans-serif;
+  --doc-heading-font: var(--doc-font);
+  --doc-size: 16.5px;
+  --doc-leading: 1.8;
+  --doc-measure: 58ch;       /* przytulna, węższa kolumna */
+  --doc-pad: 2.4rem 2.4rem 4.5rem;
+  --doc-h1: 2rem;
+  --doc-h-weight: 700;
+  --doc-h-align: center;     /* wyśrodkowane, miękkie nagłówki */
+  --doc-bullet: "✿";
+  --doc-bullet-weight: 400;
+}
+
+/* Terminal — ciemny, zielony monospace, prefiksy „# / $". */
+.docs-style-terminal {
+  --doc-bg: #0b0f0c;
+  --doc-fg: #4ade80;
+  --doc-muted: #4d8d5f;
+  --doc-heading: #86efac;
+  --doc-link: #38bdf8;
+  --doc-accent: #22c55e;
+  --doc-border: rgba(74, 222, 128, 0.25);
+  --doc-code-bg: rgba(74, 222, 128, 0.1);
+  --doc-quote-bg: rgba(74, 222, 128, 0.06);
+  --doc-font: var(--doc-mono);
+  --doc-heading-font: var(--doc-mono);
+  --doc-size: 15px;
+  --doc-leading: 1.65;
+  --doc-measure: 100ch;      /* bardzo szeroki łam, przy lewej krawędzi */
+  --doc-col-ml: 0;
+  --doc-pad: 1.8rem 2.2rem 4rem;
+  --doc-h-weight: 700;
+  --doc-bullet: "$";
+}
+.docs-style-terminal h1::before { content: "# "; color: var(--doc-accent); }
+.docs-style-terminal h2::before { content: "## "; color: var(--doc-accent); }
+.docs-style-terminal h3::before { content: "### "; color: var(--doc-accent); }
+
+/* Neon — głęboka czerń, cyjan + magenta, poświata na nagłówkach. */
+.docs-style-neon {
+  --doc-bg: #08081a;
+  --doc-fg: #b8eaff;
+  --doc-muted: #6d7fb3;
+  --doc-heading: #ff5bd8;
+  --doc-link: #5cf2c4;
+  --doc-accent: #00e5ff;
+  --doc-border: rgba(0, 229, 255, 0.28);
+  --doc-code-bg: rgba(0, 229, 255, 0.08);
+  --doc-quote-bg: rgba(255, 91, 216, 0.07);
+  --doc-font: var(--doc-mono);
+  --doc-heading-font: var(--doc-mono);
+  --doc-size: 15.5px;
+  --doc-leading: 1.7;
+  --doc-measure: 80ch;
+  --doc-h1: 2rem;
+  --doc-h-weight: 700;
+  --doc-h-spacing: 0.04em;
+  --doc-h-align: center;     /* wyśrodkowane nagłówki z poświatą */
+  --doc-bullet: "◆";
+}
+.docs-style-neon h1, .docs-style-neon h2, .docs-style-neon h3 { text-shadow: 0 0 12px rgba(255, 91, 216, 0.55); }
+.docs-style-neon a { text-shadow: 0 0 8px rgba(92, 242, 196, 0.5); }
