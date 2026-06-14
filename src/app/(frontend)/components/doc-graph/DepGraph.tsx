@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { archetypeFor, GLYPH } from './archetypes'
 import { folderToColor } from './color'
-import type { RawNode } from './layout'
+import type { RawNode } from './graph-layout'
 
 interface Edge { source: string; target: string }
 

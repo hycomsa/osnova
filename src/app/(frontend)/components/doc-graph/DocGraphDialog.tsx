@@ -6,7 +6,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { useTranslation } from '@/i18n/client'
 import { GLYPH, LEGEND_SHAPES, SHAPE_I18N } from './archetypes'
 import { DepGraph } from './DepGraph'
-import type { RawNode } from './layout'
+import type { RawNode } from './graph-layout'
 
 interface Edge { source: string; target: string }
 

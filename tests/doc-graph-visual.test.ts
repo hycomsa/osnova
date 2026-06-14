@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { folderToColor, hashStringToHue } from '@/app/(frontend)/components/doc-graph/color'
 import { archetypeFor } from '@/app/(frontend)/components/doc-graph/archetypes'
-import { buildTree, type RawNode } from '@/app/(frontend)/components/doc-graph/layout'
+import { buildTree, type RawNode } from '@/app/(frontend)/components/doc-graph/graph-layout'
 
 describe('color: hashStringToHue', () => {
   it('deterministyczny i w zakresie 0..359', () => {
