@@ -442,6 +442,34 @@ export async function setProperties(
   return res
 }
 
+// Szybka zmiana nazwy WYŚWIETLANEJ (frontmatter `name`) — MERGE: zachowuje pozostałe pola
+// frontmattera (w przeciwieństwie do setProperties, które zapisuje tylko przekazane klucze).
+export async function setDisplayName(
+  ctx: WorkspaceContext,
+  path: string,
+  name: string | null,
+  author: { name: string; email: string },
+): Promise<{ commit: string }> {
+  if (!hasPermission(ctx.permissions, 'props-edit', ctx.isSystemAdmin)) throw new AccessDenied('No props-edit permission')
+  if (!isPathAllowed(path, ctx.rules)) throw new AccessDenied('Path outside view')
+  const data = await readRepoFile(ctx.worktreeDir, path)
+  const { meta, body } = extractFrontmatter(data.toString('utf8'))
+  const next: Record<string, unknown> = { ...(meta ?? {}) }
+  const trimmed = name?.trim()
+  if (trimmed) next.name = trimmed
+  else delete next.name
+  const bodyTrimmed = body.replace(/^\s*\n/, '')
+  const content = Object.keys(next).length
+    ? `---\n${stringifyYaml(next).trimEnd()}\n---\n\n${bodyTrimmed}`
+    : bodyTrimmed
+  const res = await commitAndPush({
+    dir: ctx.worktreeDir, relPath: path, content, branch: ctx.branch, ...authorOf(author),
+    message: `osnova: nazwa wyświetlana ${path}`, detectConflict: true,
+  })
+  audit(ctx, 'properties-changed', { path, detail: res.commit.slice(0, 8) })
+  return res
+}
+
 function requireHistory(ctx: WorkspaceContext): void {
   if (!hasPermission(ctx.permissions, 'history-view', ctx.isSystemAdmin)) throw new AccessDenied('No history permission')
 }

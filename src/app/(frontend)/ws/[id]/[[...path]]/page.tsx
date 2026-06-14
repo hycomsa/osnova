@@ -88,6 +88,7 @@ interface TreeResponse {
   canManageMembers?: boolean
   canUseAI?: boolean
   canViewReports?: boolean
+  canEditProps?: boolean
   revision?: string | null
   workspaceName?: string
   workspaceSlug?: string
@@ -457,6 +458,17 @@ function WorkspaceView() {
     if (!confirm(`Usunąć ${active}? (commit + push)`)) return
     if (await fileOp({ op: 'delete', path: active })) { await reloadTree(); router.push(hrefFor('', view), { scroll: false }) }
   }
+  // szybka zmiana nazwy wyświetlanej (frontmatter `name`) — merge, nie rusza ścieżki pliku
+  const onRenameDisplay = async () => {
+    setFileMenu(false); if (!active || !view) return
+    let current = ''
+    try { const r = await fetch(`/api/ws/${id}/properties?view=${view}&path=${encodeURIComponent(active)}`); if (r.ok) current = String((await r.json()).meta?.name ?? '') } catch { /* prefill best-effort */ }
+    const raw = prompt(t('viewer.renameDisplayPrompt'), current)
+    if (raw === null) return
+    const r = await fetch(`/api/ws/${id}/properties?view=${view}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: active, name: raw.trim() }) })
+    if (r.ok) { await reloadTree(); loadedKey.current = null; void openFile(active) }
+    else flashToast(t('viewer.saveError'))
+  }
 
   // Synchronizacja repo jako zadanie w tle (kolejka Payload): zakolejkuj i odpytuj o status.
   const onSync = async () => {
@@ -557,6 +569,7 @@ function WorkspaceView() {
             <button onClick={() => setFileMenu((s) => !s)} disabled={busy} title={t('viewer.fileOps')} aria-label={t('viewer.fileOps')} aria-haspopup="menu" aria-expanded={fileMenu} className={rbtnCls(fileMenu)}><MoreHorizontal size={ic} /><RLabel>{t('viewer.fileOps')}</RLabel></button>
             {fileMenu && (
               <div className="absolute right-0 z-30 mt-1.5 w-44 overflow-hidden rounded-xl border border-border bg-popover/95 p-1 text-sm shadow-xl backdrop-blur">
+                {tree?.canEditProps && isMd(active) && <button onClick={onRenameDisplay} className="block w-full rounded-md px-2.5 py-1.5 text-left hover:bg-secondary/70">{t('viewer.renameDisplay')}</button>}
                 <button onClick={onRename} className="block w-full rounded-md px-2.5 py-1.5 text-left hover:bg-secondary/70">{t('viewer.rename')}</button>
                 <button onClick={onDuplicate} className="block w-full rounded-md px-2.5 py-1.5 text-left hover:bg-secondary/70">{t('viewer.duplicate')}</button>
                 <button onClick={onDelete} className="block w-full rounded-md px-2.5 py-1.5 text-left text-destructive hover:bg-destructive/10">{t('viewer.delete')}</button>
@@ -593,6 +606,7 @@ function WorkspaceView() {
                 workspaceId={id} view={view} recentPaths={recent}
                 onNewFile={canManage ? onNew : undefined}
                 tags={tags} activeTag={activeTag} onToggleTag={(tg) => { void filterByTag(tg) }}
+                canEditProps={tree.canEditProps} onChanged={() => { void reloadTree() }}
               />
             )}
             {/* uchwyt zmiany szerokości panelu (tylko desktop) */}

@@ -53,8 +53,10 @@ function StarToggle({ active, label, onToggle }: { active: boolean; label: strin
 // Wiersz drzewa. Świadomie NIE zależy od `active` — podświetlenie aktywnego wiersza
 // nakładamy klasą `.row-active` przez efekt DOM, dzięki czemu nawigacja między plikami
 // nie przerenderowuje całego drzewa (patrz DocsTree).
+type CtxHandler = (e: { preventDefault: () => void; clientX: number; clientY: number }, path: string, label: string) => void
+
 const Row = memo(function Row({
-  node, depth, expanded, toggle, onOpen, filter, fav, onToggleFav, addLabel, removeLabel,
+  node, depth, expanded, toggle, onOpen, filter, fav, onToggleFav, addLabel, removeLabel, onContext,
 }: {
   node: TreeNode
   depth: number
@@ -66,6 +68,7 @@ const Row = memo(function Row({
   onToggleFav: (path: string, label: string) => void
   addLabel: string
   removeLabel: string
+  onContext?: CtxHandler
 }) {
   if (!matches(node, filter)) return null
   const hasChildren = (node.children?.length ?? 0) > 0
@@ -78,6 +81,9 @@ const Row = memo(function Row({
     else if (node.type === 'bundle') { if (node.primaryFile) onOpen(node.primaryFile); toggle(node.id) }
     else toggle(node.id)
   }
+  // prawy-klik na pliku/bundlu → menu kontekstowe (zmiana nazwy wyświetlanej); cel = ścieżka dokumentu
+  const ctxPath = node.type === 'file' ? node.path : node.type === 'bundle' ? node.primaryFile : undefined
+  const onCtx = onContext && ctxPath ? (e: { preventDefault: () => void; clientX: number; clientY: number }) => onContext(e, ctxPath, node.label) : undefined
 
   return (
     <li>
@@ -86,6 +92,7 @@ const Row = memo(function Row({
         className="docs-row group flex cursor-pointer items-center gap-1 rounded px-1.5 py-1 text-sm text-foreground/85 transition-colors hover:bg-secondary/60"
         style={{ paddingLeft: `${depth * 12 + 4}px` }}
         onClick={handle}
+        onContextMenu={onCtx}
         title={node.path ?? node.label}
       >
         <span className="grid w-3.5 shrink-0 place-items-center text-muted-foreground/70">
@@ -100,7 +107,7 @@ const Row = memo(function Row({
       {hasChildren && isOpen && (
         <ul className="relative">
           {node.children!.map((c) => (
-            <Row key={c.id} node={c} depth={depth + 1} expanded={expanded} toggle={toggle} onOpen={onOpen} filter={filter} fav={fav} onToggleFav={onToggleFav} addLabel={addLabel} removeLabel={removeLabel} />
+            <Row key={c.id} node={c} depth={depth + 1} expanded={expanded} toggle={toggle} onOpen={onOpen} filter={filter} fav={fav} onToggleFav={onToggleFav} addLabel={addLabel} removeLabel={removeLabel} onContext={onContext} />
           ))}
         </ul>
       )}
@@ -156,7 +163,7 @@ function collectIds(nodes: TreeNode[]): string[] {
 
 export function DocsTree({
   nodes, active, onOpen, storageKey, workspaceId, view, recentPaths = [],
-  onNewFile, tags = [], activeTag = null, onToggleTag,
+  onNewFile, tags = [], activeTag = null, onToggleTag, canEditProps = false, onChanged,
 }: {
   nodes: TreeNode[]
   active: string | null
@@ -169,6 +176,8 @@ export function DocsTree({
   tags?: { tag: string; count: number }[]
   activeTag?: string | null
   onToggleTag?: (tag: string | null) => void
+  canEditProps?: boolean
+  onChanged?: () => void
 }) {
   // init z cache modułowego → remount strony nie zwija drzewa (pusty start tylko przy 1. wejściu)
   const [expanded, setExpandedState] = useState<Set<string>>(() => EXPANDED_CACHE.get(storageKey) ?? new Set())
@@ -241,6 +250,29 @@ export function DocsTree({
       : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, label }) },
     ).catch(() => { /* przy błędzie zostaw stan optymistyczny */ })
   }, [workspaceId, view, favSet])
+
+  // menu kontekstowe drzewa: szybka zmiana nazwy wyświetlanej (frontmatter `name`)
+  const [menu, setMenu] = useState<{ x: number; y: number; path: string; label: string } | null>(null)
+  useEffect(() => {
+    if (!menu) return
+    const close = () => setMenu(null)
+    document.addEventListener('click', close)
+    document.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    return () => { document.removeEventListener('click', close); document.removeEventListener('scroll', close, true); window.removeEventListener('resize', close) }
+  }, [menu])
+  const onContext = useMemo<CtxHandler | undefined>(() => (canEditProps && workspaceId && view)
+    ? (e, path, label) => { e.preventDefault(); setMenu({ x: e.clientX, y: e.clientY, path, label }) }
+    : undefined, [canEditProps, workspaceId, view])
+  const renameDisplay = useCallback(async (path: string, currentLabel: string) => {
+    if (!workspaceId || !view) return
+    const raw = window.prompt(t('viewer.renameDisplayPrompt'), currentLabel)
+    if (raw === null) return // anulowano
+    await fetch(`/api/ws/${workspaceId}/properties?view=${encodeURIComponent(view)}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path, name: raw.trim() }),
+    }).catch(() => {})
+    onChanged?.()
+  }, [workspaceId, view, onChanged, t])
 
   const index = useMemo(() => indexNodesByPath(nodes as any), [nodes])
   const favEntries = useMemo(() => resolveFavorites(favs, index), [favs, index])
@@ -365,12 +397,20 @@ export function DocsTree({
             )}
             <ul>
               {nodes.map((n) => (
-                <Row key={n.id} node={n} depth={0} expanded={expanded} toggle={toggle} onOpen={onOpen} filter={q} fav={favSet} onToggleFav={toggleFav} addLabel={addLabel} removeLabel={removeLabel} />
+                <Row key={n.id} node={n} depth={0} expanded={expanded} toggle={toggle} onOpen={onOpen} filter={q} fav={favSet} onToggleFav={toggleFav} addLabel={addLabel} removeLabel={removeLabel} onContext={onContext} />
               ))}
             </ul>
           </section>
         )}
       </div>
+
+      {menu && (
+        <div className="fixed z-50 min-w-[13rem] overflow-hidden rounded-lg border border-border bg-popover/95 p-1 text-sm shadow-xl backdrop-blur"
+          style={{ left: menu.x, top: menu.y }} onClick={(e) => e.stopPropagation()}>
+          <button onClick={() => { const m = menu; setMenu(null); void renameDisplay(m.path, m.label) }}
+            className="block w-full rounded-md px-2.5 py-1.5 text-left hover:bg-secondary/70">{t('viewer.renameDisplay')}</button>
+        </div>
+      )}
     </div>
   )
 }

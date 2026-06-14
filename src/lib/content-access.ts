@@ -1,5 +1,8 @@
 import picomatch from 'picomatch'
-import type { ViewRules } from './view-rules'
+import { UNDERSCORE_EXCLUDES, type ViewRules } from './view-rules'
+
+// binarne zasoby osadzane w dokumentach (obrazki, SVG) — nie są dokumentami nawigacyjnymi
+const ASSET_RE = /\.(png|jpe?g|gif|svg|webp|avif|bmp|ico)$/i
 
 function normalizePath(p: string): string {
   return p.replace(/^\.\//, '').replace(/^\//, '')
@@ -38,6 +41,13 @@ export function isAttachmentPath(p: string): boolean {
 export function isReadable(path: string, rules: ViewRules): boolean {
   const p = normalizePath(path)
   if (isPathAllowed(p, rules)) return true
+  // Osadzone zasoby binarne (obrazki/SVG) w katalogach „_" — serwuj, jeśli mieszczą się w obszarze
+  // objętym include, a jedynym powodem wykluczenia była reguła podkreślnika. Notatki .md i jawne
+  // wykluczenia pozostają ukryte (ASSET_RE nie obejmuje markdownu).
+  if (ASSET_RE.test(p)) {
+    const relaxed: ViewRules = { include: rules.include, exclude: rules.exclude.filter((g) => !UNDERSCORE_EXCLUDES.includes(g)) }
+    if (isPathAllowed(p, relaxed)) return true
+  }
   if (!isAttachmentPath(p)) return false
   if (rules.exclude.length > 0 && picomatch(rules.exclude, { dot: true })(p)) return false
   const i = p.indexOf('/.attachments/')
