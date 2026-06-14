@@ -28,13 +28,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const filters: ReportFilters = {
       docType: sp.get('docType') || null,
       status: statusParam && STATUSES.includes(statusParam as DocStatus) ? (statusParam as DocStatus) : null,
+      approver: sp.get('approver') || null,
       from: sp.get('from') || null,
       to: sp.get('to') || null,
     }
     const idx = await getReportsIndex(payload, ctx)
     const data = aggregate(idx.docs, filters)
-    // lista typów dokumentów (do filtra), liczona z pełnego zbioru — niezależnie od drill-downu
+    // listy do filtrów, liczone z pełnego zbioru — niezależne od drill-downu
     const docTypes = [...new Set(idx.docs.map((d) => d.docType).filter((x): x is string => !!x))].sort()
-    return NextResponse.json({ view, allowedViews: ctx.allowedViews, filters, docTypes, ...data })
+    const apprMap = new Map<string, string | null>()
+    for (const d of idx.docs) {
+      if ((d.status === 'approved' || d.status === 'stale') && d.approvedBy && !apprMap.has(d.approvedBy)) apprMap.set(d.approvedBy, d.approvedByName)
+    }
+    const approvers = [...apprMap.entries()].map(([email, name]) => ({ email, name })).sort((a, b) => (a.name ?? a.email).localeCompare(b.name ?? b.email))
+    return NextResponse.json({ view, allowedViews: ctx.allowedViews, filters, docTypes, approvers, ...data })
   } catch (e) { return toErrorResponse(e) }
 }

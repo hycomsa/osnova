@@ -60,6 +60,38 @@ export function OverTime({ data, cumulativeLabel }: { data: TimeDatum[]; cumulat
   )
 }
 
+export interface ApproverSeg { status: StatusKey; approver: string | null; name: string | null; count: number }
+// Dwupierścieniowy donut: środek = rozkład statusów, zewnętrzny pierścień = osoby akceptujące per status.
+export function StatusApproverDonut({ statusData, segs, noApproverLabel, onSelectApprover, onSelectStatus }: {
+  statusData: PieDatum[]
+  segs: ApproverSeg[]
+  noApproverLabel: string
+  onSelectApprover?: (email: string) => void
+  onSelectStatus?: (k: StatusKey) => void
+}) {
+  const inner = statusData.filter((d) => d.value > 0)
+  if (inner.length === 0) return null
+  // opacity różnicuje osoby w obrębie jednego statusu (kolor = status)
+  const fills: number[] = []
+  let last = ''
+  let idx = 0
+  for (const s of segs) { if (s.status !== last) { last = s.status; idx = 0 } else idx++; fills.push(s.approver ? Math.max(0.4, 1 - idx * 0.16) : 0.85) }
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie data={inner} dataKey="value" nameKey="label" outerRadius="52%" onClick={(e: any) => onSelectStatus?.(e?.payload?.key as StatusKey)} cursor={onSelectStatus ? 'pointer' : undefined}>
+          {inner.map((d) => <Cell key={d.key} fill={STATUS_COLOR[d.key]} stroke="hsl(var(--background))" strokeWidth={2} />)}
+        </Pie>
+        <Pie data={segs} dataKey="count" nameKey="name" innerRadius="56%" outerRadius="82%" paddingAngle={1}
+          onClick={(e: any) => { const a = e?.payload?.approver; if (a) onSelectApprover?.(a) }} cursor={onSelectApprover ? 'pointer' : undefined}>
+          {segs.map((s, i) => <Cell key={i} fill={STATUS_COLOR[s.status]} fillOpacity={fills[i]} stroke="hsl(var(--background))" strokeWidth={1} />)}
+        </Pie>
+        <Tooltip {...tooltipStyle} formatter={(v: any, _n: any, p: any) => [v, p?.payload?.name || p?.payload?.label || noApproverLabel]} />
+      </PieChart>
+    </ResponsiveContainer>
+  )
+}
+
 export interface TypeDatum { docType: string; approved: number; stale: number; changesRequested: number; pending: number; total: number }
 export function ByTypeBars({ data, labels, onSelect }: {
   data: TypeDatum[]

@@ -7,16 +7,20 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AppHeader } from '@/components/app-header'
 import { Spinner } from '@/components/ui/spinner'
 import { useTranslation } from '@/i18n/client'
-import { ByTypeBars, OverTime, StatusPie, STATUS_COLOR, type StatusKey } from '@/app/(frontend)/components/reports/Charts'
+import { type ApproverSeg, ByTypeBars, OverTime, StatusApproverDonut, StatusPie, STATUS_COLOR, type StatusKey } from '@/app/(frontend)/components/reports/Charts'
 
-interface ReportDoc { path: string; title: string; docType: string | null; status: StatusKey; approvedBy: string | null; approvedAt: string | null }
+interface ReportDoc { path: string; title: string; docType: string | null; status: StatusKey; approvedBy: string | null; approvedByName: string | null; approvedAt: string | null }
 interface TypeRow { docType: string; approved: number; stale: number; changesRequested: number; pending: number; total: number }
+interface ApproverRow { approver: string; name: string | null; accepted: number; total: number }
 interface ReportData {
   view: string
   allowedViews: string[]
   docTypes: string[]
+  approvers: { email: string; name: string | null }[]
   totals: { inScope: number; approved: number; stale: number; changesRequested: number; pending: number }
   byDocType: TypeRow[]
+  byApprover: ApproverRow[]
+  statusApprovers: ApproverSeg[]
   overTime: { bucket: string; acceptedInBucket: number; cumulativeApproved: number }[]
   docs: ReportDoc[]
 }
@@ -35,6 +39,7 @@ export default function ReportsPage() {
   const view = sp.get('view')
   const docType = sp.get('docType')
   const status = sp.get('status') as StatusKey | null
+  const approver = sp.get('approver')
   const from = sp.get('from')
   const to = sp.get('to')
 
@@ -52,6 +57,7 @@ export default function ReportsPage() {
       const q = new URLSearchParams({ view: v })
       if (docType) q.set('docType', docType)
       if (status) q.set('status', status)
+      if (approver) q.set('approver', approver)
       if (from) q.set('from', from)
       if (to) q.set('to', to)
       const r = await fetch(`/api/ws/${id}/reports?${q.toString()}`)
@@ -65,7 +71,7 @@ export default function ReportsPage() {
       }
     }
     setData(null); setLoading(false)
-  }, [id, view, docType, status, from, to, setParams])
+  }, [id, view, docType, status, approver, from, to, setParams])
   useEffect(() => { void load() }, [load])
 
   const statusLabels: Record<StatusKey, string> = useMemo(() => ({
@@ -74,7 +80,8 @@ export default function ReportsPage() {
   }), [t, i18n.language])
 
   const acceptedPct = data && data.totals.inScope > 0 ? Math.round((data.totals.approved / data.totals.inScope) * 100) : 0
-  const filterActive = Boolean(docType || status || from || to)
+  const filterActive = Boolean(docType || status || approver || from || to)
+  const approverName = (email: string) => data?.approvers.find((a) => a.email === email)?.name || email
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -99,7 +106,7 @@ export default function ReportsPage() {
             {/* filtry */}
             <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card/40 p-3">
               <Field label={t('reports.view')}>
-                <select value={data.view} onChange={(e) => setParams({ view: e.target.value, docType: null, status: null })} className={selCls}>
+                <select value={data.view} onChange={(e) => setParams({ view: e.target.value, docType: null, status: null, approver: null })} className={selCls}>
                   {data.allowedViews.map((v) => <option key={v} value={v}>{t(`views.${v}`)}</option>)}
                 </select>
               </Field>
@@ -115,36 +122,44 @@ export default function ReportsPage() {
                   {(['approved', 'stale', 'changes_requested', 'pending'] as StatusKey[]).map((s) => <option key={s} value={s}>{statusLabels[s]}</option>)}
                 </select>
               </Field>
+              <Field label={t('reports.approver')}>
+                <select value={approver ?? ''} onChange={(e) => setParams({ approver: e.target.value || null })} className={selCls}>
+                  <option value="">{t('reports.allApprovers')}</option>
+                  {data.approvers.map((a) => <option key={a.email} value={a.email}>{a.name || a.email}</option>)}
+                </select>
+              </Field>
               <Field label={t('reports.from')}><input type="date" value={from ?? ''} onChange={(e) => setParams({ from: e.target.value || null })} className={selCls} /></Field>
               <Field label={t('reports.to')}><input type="date" value={to ?? ''} onChange={(e) => setParams({ to: e.target.value || null })} className={selCls} /></Field>
               {filterActive && (
-                <button onClick={() => setParams({ docType: null, status: null, from: null, to: null })} className="inline-flex h-9 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
+                <button onClick={() => setParams({ docType: null, status: null, approver: null, from: null, to: null })} className="inline-flex h-9 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
                   <X size={14} /> {t('reports.clearFilters')}
                 </button>
               )}
             </div>
 
             {/* breadcrumb drill-downu */}
-            {(docType || status) && (
-              <nav className="mb-4 flex items-center gap-1 text-sm text-muted-foreground">
-                <button onClick={() => setParams({ docType: null, status: null })} className="hover:text-foreground">{t('reports.breadcrumbAll')}</button>
-                {docType && (<><ChevronRight size={14} className="opacity-50" /><button onClick={() => setParams({ status: null })} className="font-medium text-foreground hover:underline">{docType}</button></>)}
-                {status && (<><ChevronRight size={14} className="opacity-50" /><span className="font-medium text-foreground">{statusLabels[status]}</span></>)}
+            {(docType || status || approver) && (
+              <nav className="mb-4 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+                <button onClick={() => setParams({ docType: null, status: null, approver: null })} className="hover:text-foreground">{t('reports.breadcrumbAll')}</button>
+                {docType && (<><ChevronRight size={14} className="opacity-50" /><button onClick={() => setParams({ docType: null })} className="font-medium text-foreground hover:underline">{docType}</button></>)}
+                {status && (<><ChevronRight size={14} className="opacity-50" /><button onClick={() => setParams({ status: null })} className="font-medium text-foreground hover:underline">{statusLabels[status]}</button></>)}
+                {approver && (<><ChevronRight size={14} className="opacity-50" /><span className="font-medium text-foreground">{approverName(approver)}</span></>)}
               </nav>
             )}
 
             {/* KPI */}
-            <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
               <Kpi label={t('reports.kpiInScope')} value={data.totals.inScope} />
               <Kpi label={t('reports.kpiAcceptedPct')} value={`${acceptedPct}%`} accent={STATUS_COLOR.approved} />
               <Kpi label={t('reports.kpiAccepted')} value={data.totals.approved} accent={STATUS_COLOR.approved} />
               <Kpi label={t('reports.kpiPending')} value={data.totals.pending} accent={STATUS_COLOR.pending} />
               <Kpi label={t('reports.kpiChanges')} value={data.totals.changesRequested} accent={STATUS_COLOR.changes_requested} />
               <Kpi label={t('reports.kpiStale')} value={data.totals.stale} accent={STATUS_COLOR.stale} />
+              <Kpi label={t('reports.kpiApprovers')} value={data.byApprover.length} />
             </div>
 
             {/* wykresy */}
-            <div className="mb-5 grid gap-4 lg:grid-cols-3">
+            <div className="mb-4 grid gap-4 lg:grid-cols-2">
               <Panel title={t('reports.chartStatus')}>
                 <div className="h-64">
                   <StatusPie
@@ -158,10 +173,37 @@ export default function ReportsPage() {
                   />
                 </div>
               </Panel>
-              <Panel title={t('reports.chartOverTime')} className="lg:col-span-2">
-                <div className="h-64"><OverTime data={data.overTime} cumulativeLabel={t('reports.cumulative')} /></div>
+              <Panel title={t('reports.chartApprovers')}>
+                <div className="h-64">
+                  <StatusApproverDonut
+                    statusData={[
+                      { key: 'approved', label: statusLabels.approved, value: data.totals.approved },
+                      { key: 'stale', label: statusLabels.stale, value: data.totals.stale },
+                      { key: 'changes_requested', label: statusLabels.changes_requested, value: data.totals.changesRequested },
+                      { key: 'pending', label: statusLabels.pending, value: data.totals.pending },
+                    ]}
+                    segs={data.statusApprovers}
+                    noApproverLabel={t('reports.noApprover')}
+                    onSelectStatus={(k) => setParams({ status: status === k ? null : k })}
+                    onSelectApprover={(a) => setParams({ approver: approver === a ? null : a })}
+                  />
+                </div>
+                {data.byApprover.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    {data.byApprover.map((a) => (
+                      <button key={a.approver} onClick={() => setParams({ approver: approver === a.approver ? null : a.approver })} title={a.approver}
+                        className={`inline-flex items-center gap-1.5 hover:text-foreground ${approver === a.approver ? 'font-medium text-foreground' : ''}`}>
+                        <span className="h-2 w-2 rounded-full" style={{ background: STATUS_COLOR.approved }} />
+                        {a.name || a.approver} · {a.accepted}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </Panel>
             </div>
+            <Panel title={t('reports.chartOverTime')} className="mb-5">
+              <div className="h-64"><OverTime data={data.overTime} cumulativeLabel={t('reports.cumulative')} /></div>
+            </Panel>
 
             <Panel title={t('reports.chartByType')} className="mb-5">
               <div className="h-72"><ByTypeBars data={data.byDocType} labels={statusLabels} onSelect={(dt) => setParams({ docType: docType === dt ? null : dt, status: null })} /></div>
@@ -190,7 +232,7 @@ export default function ReportsPage() {
                         </td>
                         <td className="px-2 py-2 text-muted-foreground">{d.docType ?? <span className="opacity-50">{t('reports.noType')}</span>}</td>
                         <td className="px-2 py-2"><StatusPill s={d.status} label={statusLabels[d.status]} /></td>
-                        <td className="px-2 py-2 text-muted-foreground">{d.approvedBy ?? '—'}</td>
+                        <td className="px-2 py-2 text-muted-foreground" title={d.approvedBy ?? undefined}>{d.approvedByName ?? d.approvedBy ?? '—'}</td>
                         <td className="px-2 py-2 text-muted-foreground">{d.approvedAt ? new Date(d.approvedAt).toLocaleDateString(i18n.language) : '—'}</td>
                       </tr>
                     ))}

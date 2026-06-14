@@ -16,7 +16,8 @@ export interface ReportDoc {
   title: string
   docType: string | null
   status: DocStatus
-  approvedBy: string | null
+  approvedBy: string | null // email
+  approvedByName: string | null
   approvedAt: string | null // ISO
 }
 
@@ -41,7 +42,7 @@ function deriveDocType(meta: Record<string, unknown> | null): string | null {
 
 // — indeks na dysku (mirror doc-graph): przeżywa restart, reindeks gdy zmieni się rewizja repo —
 const INDEX_DIR = join(process.env.WORKTREES_DIR ?? './data/worktrees', '..', 'reports-index')
-const INDEX_VERSION = 'v1'
+const INDEX_VERSION = 'v2'
 const sanitize = (s: string) => s.replace(/[^a-zA-Z0-9_-]/g, '_')
 const indexFile = (ws: string, view: string, rev: string) => join(INDEX_DIR, `${sanitize(ws)}__${sanitize(view)}__${rev}.json`)
 
@@ -107,7 +108,7 @@ async function buildIndex(payload: Payload, ctx: WorkspaceContext, rev: string):
       const cur = shas.get(f)
       status = appr && cur && appr !== cur ? 'stale' : 'approved'
     }
-    return { path: f, title: p.title, docType: p.docType, status, approvedBy: stamp?.by ?? null, approvedAt: stamp?.date ?? null }
+    return { path: f, title: p.title, docType: p.docType, status, approvedBy: stamp?.by ?? null, approvedByName: stamp?.name ?? null, approvedAt: stamp?.date ?? null }
   })
   return { rev, docs }
 }

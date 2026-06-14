@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { aggregate, NO_TYPE } from '@/lib/reports/aggregate'
 import type { ReportDoc } from '@/lib/reports'
 
-const D = (path: string, docType: string | null, status: ReportDoc['status'], approvedAt: string | null = null): ReportDoc =>
-  ({ path, title: path, docType, status, approvedBy: status === 'approved' || status === 'stale' ? 'k@x.pl' : null, approvedAt })
+const D = (path: string, docType: string | null, status: ReportDoc['status'], approvedAt: string | null = null, by: string | null = null, name: string | null = null): ReportDoc =>
+  ({ path, title: path, docType, status, approvedBy: by ?? (status === 'approved' || status === 'stale' ? 'k@x.pl' : null), approvedByName: name, approvedAt })
 
 const DOCS: ReportDoc[] = [
-  D('a/func1.md', 'func-spec', 'approved', '2026-01-15T10:00:00Z'),
+  D('a/func1.md', 'func-spec', 'approved', '2026-01-15T10:00:00Z', 'ann@x.pl', 'Ann'),
   D('a/func2.md', 'func-spec', 'pending'),
-  D('b/intent1.md', 'intent-spec', 'approved', '2026-02-10T10:00:00Z'),
-  D('b/intent2.md', 'intent-spec', 'stale', '2026-01-20T10:00:00Z'),
-  D('c/req1.md', 'requirements-notes', 'changes_requested'),
+  D('b/intent1.md', 'intent-spec', 'approved', '2026-02-10T10:00:00Z', 'bob@x.pl', 'Bob'),
+  D('b/intent2.md', 'intent-spec', 'stale', '2026-01-20T10:00:00Z', 'ann@x.pl', 'Ann'),
+  D('c/req1.md', 'requirements-notes', 'changes_requested', null, 'bob@x.pl', 'Bob'),
   D('d/loose.md', null, 'pending'),
 ]
 
@@ -48,6 +48,31 @@ describe('reports aggregate', () => {
     const r = aggregate(DOCS, { status: 'approved' })
     expect(r.totals.inScope).toBe(6) // KPI niezmienione
     expect(r.docs.map((d) => d.path).sort()).toEqual(['a/func1.md', 'b/intent1.md'])
+  })
+
+  it('byApprover counts accepted only (approved+stale), per person', () => {
+    const r = aggregate(DOCS)
+    expect(r.byApprover).toEqual([
+      { approver: 'ann@x.pl', name: 'Ann', accepted: 2, total: 2 }, // func1 + intent2
+      { approver: 'bob@x.pl', name: 'Bob', accepted: 1, total: 1 }, // intent1 (changes-requested req1 NOT counted)
+    ])
+  })
+
+  it('statusApprovers: approved/stale split per person; changes/pending pass through as one null segment', () => {
+    const r = aggregate(DOCS)
+    const approved = r.statusApprovers.filter((s) => s.status === 'approved')
+    expect(approved.map((s) => s.approver).sort()).toEqual(['ann@x.pl', 'bob@x.pl'])
+    const stale = r.statusApprovers.filter((s) => s.status === 'stale')
+    expect(stale).toEqual([{ status: 'stale', approver: 'ann@x.pl', name: 'Ann', count: 1 }])
+    expect(r.statusApprovers.find((s) => s.status === 'changes_requested')).toEqual({ status: 'changes_requested', approver: null, name: null, count: 1 })
+    expect(r.statusApprovers.find((s) => s.status === 'pending')).toEqual({ status: 'pending', approver: null, name: null, count: 2 })
+  })
+
+  it('drill by approver re-scopes the report and drops pending', () => {
+    const r = aggregate(DOCS, { approver: 'ann@x.pl' })
+    expect(r.totals).toEqual({ inScope: 2, approved: 1, stale: 1, changesRequested: 0, pending: 0 })
+    expect(r.docs.map((d) => d.path).sort()).toEqual(['a/func1.md', 'b/intent2.md'])
+    expect(r.byApprover).toEqual([{ approver: 'ann@x.pl', name: 'Ann', accepted: 2, total: 2 }])
   })
 
   it('date range filters timeline + accepted rows, keeps pending/changes rows', () => {
