@@ -1,14 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { Search } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { BarChart3, Boxes, LayoutGrid, Search, Users } from 'lucide-react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useTranslation } from '@/i18n/client'
 import { OsnovaMark } from './osnova-mark'
 import { NotificationsBell } from './notifications-bell'
 import { UserMenu } from './user-menu'
 import { Badge } from './ui/badge'
-import { Button } from './ui/button'
 
 interface Ws { id: number | string; name: string; slug?: string }
 
@@ -17,15 +16,26 @@ export function AppHeader({ workspace, onSearch }: { workspace?: { id?: string; 
   const [open, setOpen] = useState(false)
   const [list, setList] = useState<Ws[] | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [caps, setCaps] = useState<{ canManageMembers: boolean; canViewReports: boolean }>({ canManageMembers: false, canViewReports: false })
+  const [tiles, setTiles] = useState(false)
   const ref = useRef<HTMLDivElement | null>(null)
+  const tilesRef = useRef<HTMLDivElement | null>(null)
   const { t } = useTranslation()
 
   useEffect(() => {
-    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (tilesRef.current && !tilesRef.current.contains(e.target as Node)) setTiles(false)
+    }
     document.addEventListener('mousedown', onDoc)
     fetch('/api/me').then((r) => r.json()).then((d) => setIsAdmin(Boolean(d.isSystemAdmin))).catch(() => {})
     return () => document.removeEventListener('mousedown', onDoc)
   }, [])
+
+  useEffect(() => {
+    if (!workspace?.id) { setCaps({ canManageMembers: false, canViewReports: false }); return }
+    fetch(`/api/ws/${workspace.id}/caps`).then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) setCaps(d) }).catch(() => {})
+  }, [workspace?.id])
 
   const toggleSwitcher = () => {
     setOpen((o) => !o)
@@ -113,11 +123,47 @@ export function AppHeader({ workspace, onSearch }: { workspace?: { id?: string; 
       )}
 
       <nav className="ml-auto flex items-center gap-1.5 text-sm sm:gap-2">
-        {/* redundant na mobile (logo i switcher prowadzą do listy) — ukryj by nie ścieśniać nagłówka */}
-        <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex"><Link href="/">{t('nav.workspaces')}</Link></Button>
+        {/* kafelki nawigacyjne w stylu ribbona: Workspace'y / Członkowie / Raporty */}
+        <div className="relative" ref={tilesRef}>
+          <button
+            onClick={() => setTiles((s) => !s)}
+            title={t('nav.menu')} aria-label={t('nav.menu')} aria-haspopup="menu" aria-expanded={tiles}
+            className={`flex items-center gap-1.5 rounded-md border border-border bg-background/60 px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-ring/60 hover:bg-secondary/60 hover:text-foreground ${tiles ? 'border-ring/60 bg-secondary/60 text-foreground' : ''}`}
+          >
+            <LayoutGrid size={15} />
+            <span className="hidden sm:inline">{t('nav.menu')}</span>
+          </button>
+          {tiles && (
+            <div className="absolute right-0 z-40 mt-1.5 w-[19rem] overflow-hidden rounded-xl border border-border bg-popover/95 p-2 shadow-xl backdrop-blur">
+              <div className="grid grid-cols-1 gap-1.5">
+                <NavTile href="/" icon={<Boxes size={18} />} title={t('nav.workspaces')} hint={t('nav.tileWorkspaces')} onClick={() => setTiles(false)} />
+                {workspace?.id && caps.canManageMembers && (
+                  <NavTile href={`/ws/${workspace.id}/members`} icon={<Users size={18} />} title={t('members.manage')} hint={t('nav.tileMembers')} onClick={() => setTiles(false)} />
+                )}
+                {workspace?.id && caps.canViewReports && (
+                  <NavTile href={`/ws/${workspace.id}/reports`} icon={<BarChart3 size={18} />} title={t('reports.title')} hint={t('nav.tileReports')} onClick={() => setTiles(false)} />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
         <NotificationsBell />
         <UserMenu />
       </nav>
     </header>
+  )
+}
+
+// Kafelek nawigacyjny w stylu osnovy (ikona w kafelku + tytuł + podpowiedź).
+function NavTile({ href, icon, title, hint, onClick }: { href: string; icon: ReactNode; title: string; hint: string; onClick?: () => void }) {
+  return (
+    <Link href={href} onClick={onClick}
+      className="group flex items-center gap-3 rounded-lg border border-border/60 bg-gradient-to-br from-secondary/40 to-transparent p-2.5 transition-colors hover:border-primary/40 hover:from-primary/10">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-background/70 text-primary ring-1 ring-border/60 transition-colors group-hover:ring-primary/40">{icon}</span>
+      <span className="flex min-w-0 flex-col">
+        <span className="text-sm font-medium text-foreground">{title}</span>
+        <span className="truncate text-xs text-muted-foreground">{hint}</span>
+      </span>
+    </Link>
   )
 }

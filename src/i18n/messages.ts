@@ -4,7 +4,7 @@ import type { Locale } from './config'
 const pl = {
   common: { loading: 'Ładowanie…', cancel: 'Anuluj', save: 'Zapisz', close: 'Zamknij', search: 'Szukaj', back: 'Wstecz', next: 'Dalej', now: 'teraz' },
   auth: { login: 'Logowanie', logout: 'Wyloguj', loggedInAs: 'Zalogowano jako' },
-  nav: { workspaces: 'Workspace’y', admin: 'Administracja', newWorkspace: '+ Nowy workspace', allWorkspaces: 'Wszystkie workspace’y →', switchWorkspace: 'Przełącz workspace' },
+  nav: { workspaces: 'Workspace’y', admin: 'Administracja', newWorkspace: '+ Nowy workspace', allWorkspaces: 'Wszystkie workspace’y →', switchWorkspace: 'Przełącz workspace', menu: 'Menu', tileWorkspaces: 'Wszystkie workspace’y', tileMembers: 'Członkowie, role i uprawnienia', tileReports: 'Statystyki akceptacji dokumentów' },
   home: {
     tagline: 'git-native', noWorkspaces: 'Brak przypisanych workspace’ów.',
     title: 'Twoje workspace’y', subtitle: 'Wybierz workspace, aby przeglądać i komentować dokumentację.',
@@ -50,7 +50,7 @@ const pl = {
     noResults: 'Brak wyników.', emptyTree: 'Brak dokumentów w tym widoku.', noAccessView: 'Brak dostępu do żadnego widoku w tym workspace.',
     favorites: 'Ulubione', recent: 'Ostatnio otwarte', documents: 'Dokumenty', noFavorites: 'Brak ulubionych — kliknij gwiazdkę przy dokumencie.',
     expandAll: 'Rozwiń wszystko', collapseAll: 'Zwiń wszystko', addFavorite: 'Dodaj do ulubionych', removeFavorite: 'Usuń z ulubionych',
-    copyLink: 'Kopiuj link do dokumentu', copiedLink: 'Skopiowano link do dokumentu', copiedSection: 'Skopiowano link do sekcji',
+    copyLink: 'Kopiuj link do dokumentu', docLink: 'Link do dokumentu', copyContent: 'Kopiuj treść', copiedContent: 'Skopiowano treść do schowka', copiedLink: 'Skopiowano link do dokumentu', copiedSection: 'Skopiowano link do sekcji',
     style: 'Styl treści', toggleComments: 'Pokaż/ukryj komentarze', history: 'Historia zmian', properties: 'Właściwości', pdf: 'Eksport / druk (PDF)', fileOps: 'Operacje na pliku',
     rename: 'Zmień nazwę…', duplicate: 'Duplikuj…', delete: 'Usuń…', edit: 'Edytuj',
     notFoundTitle: 'Nie znaleziono dokumentu', forbiddenTitle: 'Brak dostępu do dokumentu', errorTitle: 'Nie udało się otworzyć dokumentu',
@@ -159,7 +159,7 @@ const pl = {
 const en: typeof pl = {
   common: { loading: 'Loading…', cancel: 'Cancel', save: 'Save', close: 'Close', search: 'Search', back: 'Back', next: 'Next', now: 'just now' },
   auth: { login: 'Sign in', logout: 'Sign out', loggedInAs: 'Signed in as' },
-  nav: { workspaces: 'Workspaces', admin: 'Administration', newWorkspace: '+ New workspace', allWorkspaces: 'All workspaces →', switchWorkspace: 'Switch workspace' },
+  nav: { workspaces: 'Workspaces', admin: 'Administration', newWorkspace: '+ New workspace', allWorkspaces: 'All workspaces →', switchWorkspace: 'Switch workspace', menu: 'Menu', tileWorkspaces: 'All workspaces', tileMembers: 'Members, roles & permissions', tileReports: 'Document acceptance statistics' },
   home: {
     tagline: 'git-native', noWorkspaces: 'No workspaces assigned.',
     title: 'Your workspaces', subtitle: 'Pick a workspace to browse and comment on its documentation.',
@@ -205,7 +205,7 @@ const en: typeof pl = {
     noResults: 'No results.', emptyTree: 'No documents in this view.', noAccessView: 'No access to any view in this workspace.',
     favorites: 'Favorites', recent: 'Recently opened', documents: 'Documents', noFavorites: 'No favorites yet — click the star next to a document.',
     expandAll: 'Expand all', collapseAll: 'Collapse all', addFavorite: 'Add to favorites', removeFavorite: 'Remove from favorites',
-    copyLink: 'Copy link to document', copiedLink: 'Document link copied', copiedSection: 'Section link copied',
+    copyLink: 'Copy link to document', docLink: 'Document link', copyContent: 'Copy content', copiedContent: 'Content copied to clipboard', copiedLink: 'Document link copied', copiedSection: 'Section link copied',
     style: 'Content style', toggleComments: 'Toggle comments', history: 'Change history', properties: 'Properties', pdf: 'Export / print (PDF)', fileOps: 'File operations',
     rename: 'Rename…', duplicate: 'Duplicate…', delete: 'Delete…', edit: 'Edit',
     notFoundTitle: 'Document not found', forbiddenTitle: 'No access to this document', errorTitle: 'Could not open the document',
@@ -314,7 +314,7 @@ const en: typeof pl = {
 const de: typeof pl = {
   common: { loading: 'Wird geladen…', cancel: 'Abbrechen', save: 'Speichern', close: 'Schließen', search: 'Suchen', back: 'Zurück', next: 'Weiter', now: 'gerade eben' },
   auth: { login: 'Anmelden', logout: 'Abmelden', loggedInAs: 'Angemeldet als' },
-  nav: { workspaces: 'Workspaces', admin: 'Administration', newWorkspace: '+ Neuer Workspace', allWorkspaces: 'Alle Workspaces →', switchWorkspace: 'Workspace wechseln' },
+  nav: { workspaces: 'Workspaces', admin: 'Administration', newWorkspace: '+ Neuer Workspace', allWorkspaces: 'Alle Workspaces →', switchWorkspace: 'Workspace wechseln', menu: 'Menü', tileWorkspaces: 'Alle Workspaces', tileMembers: 'Mitglieder, Rollen & Rechte', tileReports: 'Statistik der Dokumentabnahme' },
   home: {
     tagline: 'git-native', noWorkspaces: 'Keine Workspaces zugewiesen.',
     title: 'Ihre Workspaces', subtitle: 'Wählen Sie einen Workspace, um dessen Dokumentation zu lesen und zu kommentieren.',
@@ -360,7 +360,7 @@ const de: typeof pl = {
     noResults: 'Keine Ergebnisse.', emptyTree: 'Keine Dokumente in dieser Ansicht.', noAccessView: 'Kein Zugriff auf eine Ansicht in diesem Workspace.',
     favorites: 'Favoriten', recent: 'Zuletzt geöffnet', documents: 'Dokumente', noFavorites: 'Noch keine Favoriten — klicke auf den Stern neben einem Dokument.',
     expandAll: 'Alle ausklappen', collapseAll: 'Alle einklappen', addFavorite: 'Zu Favoriten hinzufügen', removeFavorite: 'Aus Favoriten entfernen',
-    copyLink: 'Link zum Dokument kopieren', copiedLink: 'Dokumentlink kopiert', copiedSection: 'Abschnittslink kopiert',
+    copyLink: 'Link zum Dokument kopieren', docLink: 'Dokumentlink', copyContent: 'Inhalt kopieren', copiedContent: 'Inhalt in die Zwischenablage kopiert', copiedLink: 'Dokumentlink kopiert', copiedSection: 'Abschnittslink kopiert',
     style: 'Inhaltsstil', toggleComments: 'Kommentare ein/aus', history: 'Änderungsverlauf', properties: 'Eigenschaften', pdf: 'Export / Druck (PDF)', fileOps: 'Dateioperationen',
     rename: 'Umbenennen…', duplicate: 'Duplizieren…', delete: 'Löschen…', edit: 'Bearbeiten',
     notFoundTitle: 'Dokument nicht gefunden', forbiddenTitle: 'Kein Zugriff auf dieses Dokument', errorTitle: 'Dokument konnte nicht geöffnet werden',

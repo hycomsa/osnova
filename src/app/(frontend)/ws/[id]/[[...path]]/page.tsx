@@ -3,7 +3,7 @@
 import { type MouseEvent as ReactMouseEvent, type ReactNode, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { BarChart3, Check, ChevronDown, ChevronUp, Copy, Edit3, FileQuestion, History as HistoryIcon, Lock, Menu, MessageSquare, MoreHorizontal, Network, Palette, PanelLeftClose, PanelLeftOpen, Printer, SlidersHorizontal, Sparkles, TriangleAlert, Users } from 'lucide-react'
+import { BarChart3, Check, ChevronDown, ChevronUp, ClipboardCopy, Copy, Edit3, FileQuestion, History as HistoryIcon, Link2, Lock, Menu, MessageSquare, MoreHorizontal, Network, Palette, PanelLeftClose, PanelLeftOpen, Printer, SlidersHorizontal, Sparkles, TriangleAlert, Users } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { AppHeader } from '@/components/app-header'
 import { Button } from '@/components/ui/button'
@@ -510,7 +510,17 @@ function WorkspaceView() {
   const docGroups = active && isMd(active) ? (
     <>
       <Grp label={t('ribbon.document')}>
-        <RBtn icon={<Copy size={ic} />} label={t('viewer.copyLink')} onClick={() => { void navigator.clipboard?.writeText(window.location.href); flashToast(t('viewer.copiedLink')) }} />
+        <RBtn icon={<Link2 size={ic} />} label={t('viewer.docLink')} onClick={() => { void navigator.clipboard?.writeText(window.location.href); flashToast(t('viewer.copiedLink')) }} />
+        {html && <RBtn icon={<ClipboardCopy size={ic} />} label={t('viewer.copyContent')} onClick={async () => {
+          const el = contentRef.current
+          if (!el) return
+          try {
+            if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+              await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([el.innerHTML], { type: 'text/html' }), 'text/plain': new Blob([el.innerText], { type: 'text/plain' }) })])
+            } else { await navigator.clipboard?.writeText(el.innerText) }
+            flashToast(t('viewer.copiedContent'))
+          } catch { /* schowek niedostępny */ }
+        }} />}
         <div className="relative" ref={styleRef}>
           <button onClick={() => setStylePop((s) => !s)} title={t('viewer.style')} aria-label={t('viewer.style')} className={rbtnCls(stylePop)}><Palette size={ic} /><RLabel>{t('viewer.style')}</RLabel></button>
           {stylePop && (

@@ -90,7 +90,29 @@
 
 /* powierzchnia „chrome" (nagłówek, panele boczne) — odróżnia ramę aplikacji od płótna treści */
 .surface-chrome { background-color: hsl(var(--chrome)); }
-.app-header { box-shadow: 0 1px 2px hsl(var(--foreground) / 0.06), 0 2px 8px hsl(var(--foreground) / 0.04); }
+
+/* nagłówek: lekka „konstelacja" + akcentowa linia teal→orange (styl splashu osnovy),
+   by wyraźnie oddzielić ramę nawigacji od treści strony */
+.app-header {
+  position: relative;
+  background-image:
+    radial-gradient(circle at 12% 50%, hsl(184 80% 45% / 0.07), transparent 32%),
+    radial-gradient(circle at 88% 50%, hsl(24 90% 55% / 0.07), transparent 34%);
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.06), 0 6px 18px hsl(var(--foreground) / 0.06);
+}
+.app-header::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: linear-gradient(90deg, hsl(184 80% 45% / 0.6), hsl(210 60% 55% / 0.35), hsl(24 90% 55% / 0.6));
+}
+
+/* panel boczny (komentarze) — akcentowa krawędź + delikatne „uniesienie" znad płótna treści */
+.osnova-panel-l { position: relative; box-shadow: -10px 0 22px hsl(var(--foreground) / 0.05); }
+.osnova-panel-l::before {
+  content: '';
+  position: absolute; top: 0; bottom: 0; left: 0; width: 2px;
+  background: linear-gradient(180deg, hsl(184 80% 45% / 0.55), hsl(24 90% 55% / 0.55));
+}
 
 .prose-osnova { line-height: 1.6; }
 .prose-osnova h1 { font-size: 1.6rem; font-weight: 600; margin: 0.6em 0 0.3em; }

@@ -422,7 +422,7 @@ export function CommentsPanel({
     return (
       <>
         {selectionToolbar}
-        <aside className="surface-chrome flex w-10 shrink-0 flex-col items-center gap-3 border-l border-border py-3">
+        <aside className="osnova-panel-l surface-chrome flex w-10 shrink-0 flex-col items-center gap-3 border-l border-border py-3">
           <button onClick={onToggleCollapse} title={t('comments.expand')} className="relative grid h-8 w-8 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
             <PanelRightOpen size={16} />
             {tops.length > 0 && (
@@ -438,7 +438,7 @@ export function CommentsPanel({
   return (
     <>
       {selectionToolbar}
-      <aside className="surface-chrome flex w-full flex-col border-l border-border md:w-80 md:shrink-0">
+      <aside className="osnova-panel-l surface-chrome flex w-full flex-col border-l border-border md:w-80 md:shrink-0">
       <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
         <div className="flex items-center gap-2">
           <MessagesSquare size={16} className="text-muted-foreground" />
