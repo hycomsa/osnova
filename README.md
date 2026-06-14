@@ -102,8 +102,9 @@ File** — and collapse to a compact icon strip with one click. The preference p
 
 #### 💬 Comments, mentions, reactions, approvals — and live presence
 Inline comments anchored to selected text, document-level threads, `@mentions`, emoji
-reactions, resolve/reopen, and a document approval workflow (approve / request changes)
-with stale-revision detection. **Live presence** shows who else is viewing or editing the
+reactions, resolve/reopen, and a document review workflow (approve / reject — with an
+optional comment posted to the thread — / optional in-review) with stale-revision
+detection. **Live presence** shows who else is viewing or editing the
 same document right now.
 
 <img src="screenshots/10-comments.png" alt="Comments" width="420" /> <img src="screenshots/51-approval.png" alt="Approval" width="420" />

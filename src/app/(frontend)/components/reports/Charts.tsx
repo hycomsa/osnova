@@ -5,14 +5,15 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 
-export type StatusKey = 'approved' | 'stale' | 'changes_requested' | 'pending'
+export type StatusKey = 'approved' | 'stale' | 'rejected' | 'in_review' | 'pending'
 
 // kolory statusów — czytelne w trybie jasnym i ciemnym
 export const STATUS_COLOR: Record<StatusKey, string> = {
   approved: '#10b981',
   stale: '#f59e0b',
-  changes_requested: '#ef4444',
-  pending: '#94a3b8',
+  rejected: '#ef4444',
+  in_review: '#94a3b8',
+  pending: '#cbd5e1',
 }
 
 const tooltipStyle = {
@@ -92,7 +93,7 @@ export function StatusApproverDonut({ statusData, segs, noApproverLabel, onSelec
   )
 }
 
-export interface TypeDatum { docType: string; approved: number; stale: number; changesRequested: number; pending: number; total: number }
+export interface TypeDatum { docType: string; approved: number; stale: number; rejected: number; inReview: number; pending: number; total: number }
 export function ByTypeBars({ data, labels, onSelect }: {
   data: TypeDatum[]
   labels: Record<StatusKey, string>
@@ -110,7 +111,8 @@ export function ByTypeBars({ data, labels, onSelect }: {
         <Legend wrapperStyle={{ fontSize: 12 }} />
         <Bar dataKey="approved" stackId="s" name={labels.approved} fill={STATUS_COLOR.approved} cursor={onSelect ? 'pointer' : undefined} />
         <Bar dataKey="stale" stackId="s" name={labels.stale} fill={STATUS_COLOR.stale} cursor={onSelect ? 'pointer' : undefined} />
-        <Bar dataKey="changesRequested" stackId="s" name={labels.changes_requested} fill={STATUS_COLOR.changes_requested} cursor={onSelect ? 'pointer' : undefined} />
+        <Bar dataKey="rejected" stackId="s" name={labels.rejected} fill={STATUS_COLOR.rejected} cursor={onSelect ? 'pointer' : undefined} />
+        <Bar dataKey="inReview" stackId="s" name={labels.in_review} fill={STATUS_COLOR.in_review} cursor={onSelect ? 'pointer' : undefined} />
         <Bar dataKey="pending" stackId="s" name={labels.pending} fill={STATUS_COLOR.pending} cursor={onSelect ? 'pointer' : undefined} radius={[3, 3, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>

@@ -9,7 +9,7 @@ import { type ApprovalStamp, reconcileApprovals, readApprovalStamp } from '../ap
 const MD = /\.(md|markdown)$/i
 
 // Status raportowy dokumentu (uniwersum = wszystkie .md widoczne w danym widoku).
-export type DocStatus = 'approved' | 'changes_requested' | 'pending' | 'stale'
+export type DocStatus = 'approved' | 'rejected' | 'in_review' | 'pending' | 'stale'
 
 export interface ReportDoc {
   path: string
@@ -102,7 +102,9 @@ async function buildIndex(payload: Payload, ctx: WorkspaceContext, rev: string):
     const p = parsed.get(f)!
     const stamp = p.stamp
     let status: DocStatus = 'pending'
-    if (stamp?.status === 'changes_requested') status = 'changes_requested'
+    // stamp.status jest już znormalizowany (legacy changes_requested → rejected) przez readApprovalStamp
+    if (stamp?.status === 'rejected') status = 'rejected'
+    else if (stamp?.status === 'in_review') status = 'in_review'
     else if (stamp?.status === 'approved') {
       const appr = approvedRev.get(f)
       const cur = shas.get(f)

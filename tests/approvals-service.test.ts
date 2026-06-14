@@ -10,6 +10,7 @@ import { makeBareOrigin, pushExternalChange } from './helpers/fixture-repo'
 let bareDir: string
 let seq = 0
 let approvals: any[] = []
+let comments: any[] = []
 let createSeq = 0
 
 function stub(roles: string[]) {
@@ -17,6 +18,7 @@ function stub(roles: string[]) {
     create: async ({ collection, data }: any) => {
       const d = { id: ++createSeq, collection, createdAt: new Date(2026, 0, createSeq).toISOString(), ...data }
       if (collection === 'approvals') approvals.push(d)
+      if (collection === 'comments') comments.push(d)
       return d
     },
     find: async ({ collection, where }: any) => {
@@ -42,7 +44,7 @@ async function snapshot() {
 }
 
 beforeAll(async () => { process.env.WORKTREES_DIR = await mkdtemp(join(tmpdir(), 'osnova-ao-')) })
-beforeEach(async () => { seq += 1; approvals = []; bareDir = (await makeBareOrigin()).bareDir })
+beforeEach(async () => { seq += 1; approvals = []; comments = []; bareDir = (await makeBareOrigin()).bareDir })
 
 describe('approvals service (frontmatter source of truth + DB mirror)', () => {
   it('approver writes a stamp into frontmatter + a DB row with the commit revision', async () => {
@@ -57,12 +59,38 @@ describe('approvals service (frontmatter source of truth + DB mirror)', () => {
     expect(approvals[0].revision).toBeTruthy() // SHA commita zatwierdzającego
   })
 
-  it('changes_requested with a note → stamped', async () => {
+  it('reject with a note → rejected stamp + prefixed document comment', async () => {
     const c = await ctxFor(['workspace_maintainer'])
-    const st = await setApproval(c.payload, c, { id: 'u', email: 't@x.pl' }, 'doc.md', 'changes_requested', 'popraw sekcję 2')
-    expect(st.status).toBe('changes_requested')
+    const st = await setApproval(c.payload, c, { id: 'u', email: 't@x.pl' }, 'doc.md', 'rejected', 'popraw sekcję 2')
+    expect(st.status).toBe('rejected')
     expect(st.note).toBe('popraw sekcję 2')
-    expect(await (await snapshot()).read('doc.md')).toMatch(/status: changes_requested/)
+    expect(await (await snapshot()).read('doc.md')).toMatch(/status: rejected/)
+    expect(comments).toHaveLength(1)
+    expect(comments[0].kind).toBe('document')
+    expect(comments[0].body).toMatch(/^❌ Odrzucono: popraw sekcję 2/)
+  })
+
+  it('reject without a note → no comment created', async () => {
+    const c = await ctxFor(['workspace_maintainer'])
+    await setApproval(c.payload, c, { id: 'u', email: 't@x.pl' }, 'doc.md', 'rejected')
+    expect(comments).toHaveLength(0)
+  })
+
+  it('in_review → stamped, no comment, not stale', async () => {
+    const c = await ctxFor(['workspace_maintainer'])
+    const st = await setApproval(c.payload, c, { id: 'u', email: 't@x.pl' }, 'doc.md', 'in_review')
+    expect(st.status).toBe('in_review')
+    expect(st.stale).toBe(false)
+    expect(comments).toHaveLength(0)
+    expect(await (await snapshot()).read('doc.md')).toMatch(/status: in_review/)
+  })
+
+  it('getApproval normalizes legacy changes_requested → rejected', async () => {
+    // zasiej plik ze stemplem legacy bez przechodzenia przez setApproval
+    await pushExternalChange(bareDir, 'doc.md', '---\napproval:\n  status: changes_requested\n  by: x@x.pl\n---\n# Doc\n')
+    const c = await ctxFor(['workspace_maintainer'], true)
+    const st = await getApproval(c.payload, c, 'doc.md')
+    expect(st.status).toBe('rejected')
   })
 
   it('editor lacks approve → AccessDenied, no commit', async () => {

@@ -141,11 +141,25 @@ Edit a document's frontmatter (title/name, doc-type, tags, and other metadata) t
 structured **Properties** panel instead of hand-editing YAML — changes are written back to
 the file and committed.
 
-## Approvals
+## Approvals & review workflow
 
-A lightweight sign-off workflow: **approve** or **request changes** (with a note). The
-status pill detects when a document has changed since approval and flags it as stale.
-Only roles with the `approve` permission can act.
+A lightweight document review workflow driven from the status pill on each document.
+Reviewers can:
+
+- **Approve** the document.
+- **Reject** it, optionally with a comment — the note is posted to the document's comment
+  thread as a normal comment prefixed with the action (e.g. `❌ Odrzucono: …`), so the
+  reason stays visible in the discussion.
+- Optionally mark it **In review** — a quiet, non-mandatory marker (no notifications) that
+  signals a review is in progress.
+
+The status pill is colour-coded (approved, stale, rejected, in-review, pending) and detects
+when a document has changed since approval, flagging it as **stale**. All three actions
+require the `approve` permission (client roles + workspace maintainer); editors cannot
+approve. The acceptance **Reports** break documents down across all of these statuses,
+including dedicated *rejected* and *in-review* buckets.
+
+> Legacy `changes_requested` stamps are read transparently as `rejected` — no migration needed.
 
 ![Approval](../screenshots/51-approval.png)
 

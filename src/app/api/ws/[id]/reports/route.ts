@@ -9,7 +9,7 @@ import { getReportsIndex } from '@/lib/reports'
 import { aggregate, type ReportFilters } from '@/lib/reports/aggregate'
 import type { DocStatus } from '@/lib/reports'
 
-const STATUSES: DocStatus[] = ['approved', 'changes_requested', 'pending', 'stale']
+const STATUSES: DocStatus[] = ['approved', 'rejected', 'in_review', 'pending', 'stale']
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

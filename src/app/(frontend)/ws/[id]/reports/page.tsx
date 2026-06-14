@@ -10,14 +10,14 @@ import { useTranslation } from '@/i18n/client'
 import { type ApproverSeg, ByTypeBars, OverTime, StatusApproverDonut, StatusPie, STATUS_COLOR, type StatusKey } from '@/app/(frontend)/components/reports/Charts'
 
 interface ReportDoc { path: string; title: string; docType: string | null; status: StatusKey; approvedBy: string | null; approvedByName: string | null; approvedAt: string | null }
-interface TypeRow { docType: string; approved: number; stale: number; changesRequested: number; pending: number; total: number }
+interface TypeRow { docType: string; approved: number; stale: number; rejected: number; inReview: number; pending: number; total: number }
 interface ApproverRow { approver: string; name: string | null; accepted: number; total: number }
 interface ReportData {
   view: string
   allowedViews: string[]
   docTypes: string[]
   approvers: { email: string; name: string | null }[]
-  totals: { inScope: number; approved: number; stale: number; changesRequested: number; pending: number }
+  totals: { inScope: number; approved: number; stale: number; rejected: number; inReview: number; pending: number }
   byDocType: TypeRow[]
   byApprover: ApproverRow[]
   statusApprovers: ApproverSeg[]
@@ -76,7 +76,7 @@ export default function ReportsPage() {
 
   const statusLabels: Record<StatusKey, string> = useMemo(() => ({
     approved: t('reports.statusApproved'), stale: t('reports.statusStale'),
-    changes_requested: t('reports.statusChanges'), pending: t('reports.statusPending'),
+    rejected: t('reports.statusRejected'), in_review: t('reports.statusInReview'), pending: t('reports.statusPending'),
   }), [t, i18n.language])
 
   const acceptedPct = data && data.totals.inScope > 0 ? Math.round((data.totals.approved / data.totals.inScope) * 100) : 0
@@ -119,7 +119,7 @@ export default function ReportsPage() {
               <Field label={t('reports.status')}>
                 <select value={status ?? ''} onChange={(e) => setParams({ status: e.target.value || null })} className={selCls}>
                   <option value="">{t('reports.allStatuses')}</option>
-                  {(['approved', 'stale', 'changes_requested', 'pending'] as StatusKey[]).map((s) => <option key={s} value={s}>{statusLabels[s]}</option>)}
+                  {(['approved', 'stale', 'rejected', 'in_review', 'pending'] as StatusKey[]).map((s) => <option key={s} value={s}>{statusLabels[s]}</option>)}
                 </select>
               </Field>
               <Field label={t('reports.approver')}>
@@ -148,12 +148,13 @@ export default function ReportsPage() {
             )}
 
             {/* KPI */}
-            <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+            <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
               <Kpi label={t('reports.kpiInScope')} value={data.totals.inScope} />
               <Kpi label={t('reports.kpiAcceptedPct')} value={`${acceptedPct}%`} accent={STATUS_COLOR.approved} />
               <Kpi label={t('reports.kpiAccepted')} value={data.totals.approved} accent={STATUS_COLOR.approved} />
+              <Kpi label={t('reports.kpiInReview')} value={data.totals.inReview} accent={STATUS_COLOR.in_review} />
               <Kpi label={t('reports.kpiPending')} value={data.totals.pending} accent={STATUS_COLOR.pending} />
-              <Kpi label={t('reports.kpiChanges')} value={data.totals.changesRequested} accent={STATUS_COLOR.changes_requested} />
+              <Kpi label={t('reports.kpiRejected')} value={data.totals.rejected} accent={STATUS_COLOR.rejected} />
               <Kpi label={t('reports.kpiStale')} value={data.totals.stale} accent={STATUS_COLOR.stale} />
               <Kpi label={t('reports.kpiApprovers')} value={data.byApprover.length} />
             </div>
@@ -166,7 +167,8 @@ export default function ReportsPage() {
                     data={[
                       { key: 'approved', label: statusLabels.approved, value: data.totals.approved },
                       { key: 'stale', label: statusLabels.stale, value: data.totals.stale },
-                      { key: 'changes_requested', label: statusLabels.changes_requested, value: data.totals.changesRequested },
+                      { key: 'rejected', label: statusLabels.rejected, value: data.totals.rejected },
+                      { key: 'in_review', label: statusLabels.in_review, value: data.totals.inReview },
                       { key: 'pending', label: statusLabels.pending, value: data.totals.pending },
                     ]}
                     onSelect={(k) => setParams({ status: status === k ? null : k })}
@@ -179,7 +181,8 @@ export default function ReportsPage() {
                     statusData={[
                       { key: 'approved', label: statusLabels.approved, value: data.totals.approved },
                       { key: 'stale', label: statusLabels.stale, value: data.totals.stale },
-                      { key: 'changes_requested', label: statusLabels.changes_requested, value: data.totals.changesRequested },
+                      { key: 'rejected', label: statusLabels.rejected, value: data.totals.rejected },
+                      { key: 'in_review', label: statusLabels.in_review, value: data.totals.inReview },
                       { key: 'pending', label: statusLabels.pending, value: data.totals.pending },
                     ]}
                     segs={data.statusApprovers}

@@ -52,7 +52,7 @@ configuration.
 | `RepoBindings` | Git repo per workspace (host, URL, branch, `credentialRef`). |
 | `ViewConfigs` | Per-(workspace, view) glob rules, `hideUnderscored`, `showMetadata`, source. |
 | `Comments` | Inline/document comments: anchor (quote + context hash), thread, status, reactions. |
-| `Approvals` | Per-document approval state (status, revision SHA, note, author). |
+| `Approvals` | Per-document review state — status (`approved`/`rejected`/`in_review`), revision SHA, note, author. Mirror of the frontmatter stamp (source of truth). |
 | `Notifications` | Recipient, type (mention/reply/approval_*), workspace, path, read flag. |
 | `Favorites` | Per-user starred documents (unique per user+workspace+path). |
 
