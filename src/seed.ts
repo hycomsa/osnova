@@ -23,7 +23,8 @@ const TECH_INCLUDE = [
   '.ai/context/environments/**',
   '.ai/context/mockups/**',
 ]
-const EXCLUDE = ['.ai/context/_input/**']
+// Domyślnie ukrywane w widokach klienckich (m.in. changelogi — szum techniczny dla klienta)
+const EXCLUDE = ['.ai/context/_input/**', '**/changelog.md']
 
 async function foc(payload: any, collection: string, where: any, data: any): Promise<any> {
   const found = await payload.find({ collection, where, limit: 1, overrideAccess: true })
