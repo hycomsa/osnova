@@ -25,7 +25,7 @@ interface Comment {
   createdAt?: string
 }
 
-const REACTIONS = ['👍', '✅', '❓', '🎯', '🚀'] as const
+const REACTIONS = ['👍'] as const
 
 interface Member { id: number | string; name: string | null; email: string; handle: string }
 
