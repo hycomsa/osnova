@@ -342,22 +342,23 @@ export function CommentsPanel({
     const a = anchored(c)
     return (
       <div id={`osnova-cmt-${c.id}`} className={`scroll-mt-2 rounded-xl border p-3 transition-all ${reply ? 'ml-5 mt-2' : ''} ${c.status === 'resolved' ? 'border-border/60 bg-card/40 opacity-75' : 'border-border bg-card/70'} ${flashId === String(c.id) ? 'border-primary ring-2 ring-primary/40' : ''}`}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           <Avatar name={c.authorName} email={c.authorEmail ?? undefined} size={26} />
-          <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            <span className="truncate text-sm font-medium text-foreground/90">{c.authorName || c.authorEmail || 'użytkownik'}</span>
+          {/* zawijaj: przy wąskim panelu data i plakietki schodzą pod nazwę zamiast nachodzić */}
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-1">
+            <span className="max-w-full truncate text-sm font-medium text-foreground/90">{c.authorName || c.authorEmail || 'użytkownik'}</span>
             {c.createdAt && <span className="shrink-0 text-[11px] text-muted-foreground">· {relativeTime(c.createdAt, i18n.language, t('common.now'))}</span>}
+            {c.accepted && !reply && (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                <Sparkles size={11} /> {t('comments.acceptedForAi')}
+              </span>
+            )}
+            {c.status === 'resolved' && (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                <CheckCircle2 size={11} /> {t('comments.resolved')}
+              </span>
+            )}
           </div>
-          {c.accepted && !reply && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-              <Sparkles size={11} /> {t('comments.acceptedForAi')}
-            </span>
-          )}
-          {c.status === 'resolved' && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
-              <CheckCircle2 size={11} /> {t('comments.resolved')}
-            </span>
-          )}
         </div>
         {c.kind === 'inline' && c.quote && (
           <button onClick={() => jumpTo(c)} title="Pokaż w tekście" className="mt-2 block w-full truncate rounded-md border-l-2 border-primary/50 bg-primary/5 px-2 py-1 text-left text-xs italic text-muted-foreground hover:text-primary">
@@ -386,7 +387,7 @@ export function CommentsPanel({
           })}
         </div>
         {canComment && (
-          <div className="mt-2 flex items-center gap-3 border-t border-border/50 pt-2 text-xs">
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border/50 pt-2 text-xs">
             {!reply && (
               <button className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-primary" onClick={() => { setReplyTo(c); setPending(null); textareaRef.current?.focus() }}>
                 <CornerUpLeft size={12} /> {t('comments.reply')}

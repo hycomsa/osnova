@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, RotateCcw, Shield, ShieldAlert, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, ChevronDown, RotateCcw, Shield, ShieldAlert, ShieldCheck } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Spinner } from '@/components/ui/spinner'
 import { useTranslation } from '@/i18n/client'
@@ -55,19 +55,23 @@ export function ApprovalControl({ workspaceId, view, path }: { workspaceId: stri
 
   if (!st) return null
 
+  // kolorystyka zależna od statusu; każdy stan ma wypełnione tło + obwódkę, więc CTA wyraźnie
+  // odcina się od paska. Stan „brak akceptacji" = informacyjny błękit (oczekuje na przegląd).
   const pill = (() => {
-    if (st.status === 'approved' && !st.stale) return { Icon: ShieldCheck, label: t('approval.approved'), cls: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' }
-    if (st.status === 'approved' && st.stale) return { Icon: AlertTriangle, label: t('approval.approvedStale'), cls: 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400' }
-    if (st.status === 'changes_requested') return { Icon: ShieldAlert, label: t('approval.changesRequested'), cls: 'border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-400' }
-    return { Icon: Shield, label: t('approval.none'), cls: 'border-border text-muted-foreground' }
+    if (st.status === 'approved' && !st.stale) return { Icon: ShieldCheck, label: t('approval.approved'), cls: 'border-emerald-500/50 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' }
+    if (st.status === 'approved' && st.stale) return { Icon: AlertTriangle, label: t('approval.approvedStale'), cls: 'border-amber-500/50 bg-amber-500/15 text-amber-700 dark:text-amber-300' }
+    if (st.status === 'changes_requested') return { Icon: ShieldAlert, label: t('approval.changesRequested'), cls: 'border-rose-500/50 bg-rose-500/15 text-rose-700 dark:text-rose-300' }
+    return { Icon: Shield, label: t('approval.none'), cls: 'border-sky-500/50 bg-sky-500/15 text-sky-700 dark:text-sky-300' }
   })()
   const PillIcon = pill.Icon
 
   return (
     <div className="relative" ref={ref}>
-      <button onClick={() => setOpen((o) => !o)} className={`inline-flex h-7 items-center gap-1 rounded-full border px-2 text-xs transition-colors hover:bg-secondary/60 ${pill.cls}`} title={t('approval.title')}>
-        <PillIcon size={13} />
-        <span className="hidden md:inline">{pill.label}</span>
+      <button onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open}
+        className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium shadow-sm transition-[filter,background-color] hover:brightness-105 ${pill.cls}`} title={t('approval.title')}>
+        <PillIcon size={13} className="shrink-0" />
+        <span className="max-w-[9rem] truncate">{pill.label}</span>
+        <ChevronDown size={12} className="shrink-0 opacity-60" />
       </button>
       {open && (
         <div className="absolute right-0 z-30 mt-1.5 w-72 overflow-hidden rounded-xl border border-border bg-popover/95 p-3 shadow-xl backdrop-blur">
