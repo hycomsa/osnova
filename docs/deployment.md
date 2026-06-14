@@ -3,6 +3,31 @@
 Osnova is a standard Next.js (App Router) application backed by PostgreSQL, with
 Keycloak for auth and Git remotes for content. This page covers a production rollout.
 
+## System requirements
+
+| Tier | vCPU | RAM | Disk (SSD) | Notes |
+|------|------|-----|-----------|-------|
+| Minimum | 2 | 4 GB | 25 GB | App + Postgres on one box, **build elsewhere** (CI) |
+| Recommended | 4 | 8 GB | 50 GB | Build on-box, dozens of users |
+| Growth | 4–8 | 16 GB | 80–100 GB | Many/large repos, audit-log growth, local backups |
+
+- **RAM:** the spike is `next build` (`--max-old-space-size=8000` → up to ~8 GB). Runtime
+  (`next start`) is light; building in CI lets the app VM run on 4 GB.
+- **Disk:** OS + `node_modules`/`.next` (~3 GB) · `WORKTREES_DIR` (a full git clone per bound
+  repo — re-clonable cache) · PostgreSQL (collaboration data; the audit log grows). Prefer SSD.
+- **Keycloak** is external. **Local Ollama** (if used for AI) needs its own host with large
+  RAM/GPU — see [configuration.md](configuration.md#ai-optional).
+
+## Runtime dependencies
+
+- **Node.js ≥ 20.9** (`engines` in `package.json`; `.nvmrc` = 20).
+- **`git` binary** on the host/image — the app shells out via `simple-git` to clone/fetch/push
+  workspace repos. (Required at runtime, not just build.)
+- **PostgreSQL 16** (managed or self-hosted).
+- A reverse proxy (nginx/Caddy/Traefik) terminating **TLS** in front of the app on `:3000`.
+- **Network egress:** Git remote (HTTPS 443 / SSH 22), Keycloak (HTTPS), and — if enabled —
+  AI provider APIs (HTTPS) and SMTP. Keep PostgreSQL on a private network.
+
 ## Build
 
 A `Dockerfile` is included for a production image:
@@ -36,6 +61,8 @@ Set at minimum (see [configuration.md](configuration.md)):
   here). Size it for your repositories.
 - Credential env vars referenced by repo bindings (e.g. `GITLAB_TOKEN`).
 - SMTP + `MAIL_FROM` + `CRON_SECRET` if you want email digests.
+- Optional AI: `AI_PROVIDER` + provider keys (`ANTHROPIC_*` / `OPENAI_*` / `OLLAMA_*`) —
+  see [configuration.md](configuration.md#ai-optional). Verify at `/ai-health` (system admin).
 
 ## Hardening
 
@@ -62,6 +89,20 @@ curl -fsS -X POST "https://osnova.example.com/api/notifications/digest?frequency
 
 Run a weekly variant on its own schedule (`frequency=weekly`). Use `dryRun=1` to
 preview without sending. If SMTP is unconfigured the call is a safe no-op.
+
+### Acceptance-reports reconcile (optional)
+
+If you use document acceptance reports, schedule a periodic reconcile so the DB mirror
+catches up with out-of-band frontmatter edits (it's revision-aware — a no-op when nothing
+changed). Suggested every ~2 h:
+
+```bash
+curl -fsS -X POST "https://osnova.example.com/api/reports/reconcile" \
+  -H "x-cron-secret: $CRON_SECRET"
+```
+
+Reports also reconcile automatically when a workspace's repo revision changes during normal
+use; this cron only covers repos nobody is browsing.
 
 ## Health & operations
 

@@ -89,16 +89,27 @@ view config's `source`. This lets the documentation structure travel with the re
 
 ## AI (optional)
 
-The AI-assisted comment incorporation feature uses Anthropic's Claude. It's entirely
-optional — when unconfigured, the AI action simply isn't offered.
+The AI-assisted comment incorporation feature supports three providers: **Anthropic**,
+**OpenAI**, and **Ollama** (local/self-hosted, via its OpenAI-compatible `/v1` endpoint).
+It's entirely optional — when no provider is configured, the AI action isn't offered.
 
 | Variable | Purpose |
 |----------|---------|
-| `ANTHROPIC_API_KEY` | API key for Claude. Leave empty to disable AI features. |
-| `ANTHROPIC_MODEL` | Model to use (default `claude-sonnet-4-6`). |
+| `AI_PROVIDER` | Active provider: `anthropic` \| `openai` \| `ollama`. Empty = first configured (in that order). |
+| `ANTHROPIC_API_KEY` | Anthropic API key. Presence = Anthropic configured. |
+| `ANTHROPIC_MODEL` | default `claude-sonnet-4-6`. |
+| `OPENAI_API_KEY` | OpenAI API key. Presence = OpenAI configured. |
+| `OPENAI_MODEL` | default `gpt-4o-mini`. |
+| `OPENAI_BASE_URL` | optional — override for OpenAI-compatible gateways. |
+| `OLLAMA_BASE_URL` | e.g. `http://localhost:11434`. **Presence = Ollama configured.** |
+| `OLLAMA_MODEL` | default `llama3.1`. |
 
-The key is read server-side only and never exposed to the browser. Access is additionally
-gated per user by the `edit` and `ai-use` permissions, and skills are managed per workspace
-(see [administration.md](administration.md#ai-skills)).
+Keys are read server-side only and never exposed to the browser. Per-user access is gated by
+the `edit` and `ai-use` permissions; skills are managed per workspace
+(see [administration.md](administration.md#ai-skills)). A **system admin** can check provider
+configuration and run a live model health probe at **`/ai-health`**.
+
+> Local **Ollama** has very different resource needs (large RAM, ideally a GPU) — run it on a
+> separate host. Cloud providers (Anthropic/OpenAI) need only outbound HTTPS.
 
 Next: [Keycloak setup »](keycloak.md)
