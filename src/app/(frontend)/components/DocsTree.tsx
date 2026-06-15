@@ -372,27 +372,12 @@ export function DocsTree({
           </section>
         )}
 
-        {/* Ostatnio otwarte */}
-        {!q && recentEntries.length > 0 && (
-          <section className="mb-2">
-            <h3 className="flex items-center gap-1.5 px-1.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              <Clock size={12} /> {t('viewer.recent')}
-            </h3>
-            <ul>
-              {recentEntries.map((e) => (
-                <FlatRow key={`rec:${e.path}`} entry={e} onOpen={onOpen} icon={FILE_ICON}
-                  fav={favSet} onToggleFav={toggleFav} addLabel={addLabel} removeLabel={removeLabel} />
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {/* Dokumenty */}
+        {/* Dokumenty (Ostatnio otwarte przeniesione do przyklejonej stopki — patrz niżej) */}
         {empty ? (
           <p className="px-2 text-xs text-muted-foreground">{t('viewer.emptyTree')}</p>
         ) : (
           <section>
-            {!q && (favEntries.length > 0 || recentEntries.length > 0) && (
+            {!q && favEntries.length > 0 && (
               <h3 className="px-1.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t('viewer.documents')}</h3>
             )}
             <ul>
@@ -403,6 +388,21 @@ export function DocsTree({
           </section>
         )}
       </div>
+
+      {/* Ostatnio otwarte — przyklejone do dołu eksploratora; nie przesuwa drzewa przy klikaniu */}
+      {!q && recentEntries.length > 0 && (
+        <div className="shrink-0 border-t border-border/60 pt-1.5">
+          <h3 className="flex items-center gap-1.5 px-1.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <Clock size={12} /> {t('viewer.recent')}
+          </h3>
+          <ul className="max-h-40 overflow-auto">
+            {recentEntries.map((e) => (
+              <FlatRow key={`rec:${e.path}`} entry={e} onOpen={onOpen} icon={FILE_ICON}
+                fav={favSet} onToggleFav={toggleFav} addLabel={addLabel} removeLabel={removeLabel} />
+            ))}
+          </ul>
+        </div>
+      )}
 
       {menu && (
         <div className="fixed z-50 min-w-[13rem] overflow-hidden rounded-lg border border-border bg-popover/95 p-1 text-sm shadow-xl backdrop-blur"
