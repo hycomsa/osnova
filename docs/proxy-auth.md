@@ -34,7 +34,9 @@ their workspace roles as usual.
 ```env
 AUTH_MODE=proxy
 PROXY_AUTH_HEADER=X-User-UPN          # header carrying the user's email
-PROXY_AUTH_NAME_HEADER=X-User-Name    # optional display-name header
+PROXY_AUTH_NAME_HEADER=X-User-Name    # optional full display-name header
+PROXY_AUTH_GIVEN_NAME_HEADER=X-User-Given-Name    # optional (maps to OIDC given_name)
+PROXY_AUTH_FAMILY_NAME_HEADER=X-User-Family-Name  # optional (maps to OIDC family_name)
 PROXY_AUTH_SHARED_SECRET=             # optional; see "Security" below
 PROXY_AUTH_SECRET_HEADER=X-Proxy-Secret
 PROXY_LOGOUT_URL=                     # where /api/auth/logout sends the browser; empty = home
@@ -59,6 +61,11 @@ This is handy during migration, or for users who reach the app without passing t
 The header names are configurable, so any gateway works: set `PROXY_AUTH_HEADER` to whatever
 your proxy injects (e.g. `X-Forwarded-Email` / `X-Auth-Request-Email` for oauth2-proxy, or a
 custom `X-User-UPN` from Apache `mod_auth_openidc`).
+
+**Only the email is required.** Everything works with email alone — mentions resolve by the
+email local-part, and names are display-only. If the proxy also forwards a name, the display
+name is taken in this order: full-name header → given + family composed → derived from the email
+(e.g. `jan.kowalski@…` → "Jan Kowalski"). All name headers are optional.
 
 ### Security — read this
 

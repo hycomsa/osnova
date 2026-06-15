@@ -49,6 +49,12 @@
     RequestHeader set   X-User-UPN  "%{OIDC_CLAIM_email}e"
     RequestHeader unset X-User-Name
     RequestHeader set   X-User-Name "%{OIDC_CLAIM_name}e"
+    # Optional given/family name (composed into a full name if X-User-Name is absent). Safe to
+    # omit — the app falls back to a name derived from the email when these aren't present.
+    RequestHeader unset X-User-Given-Name
+    RequestHeader set   X-User-Given-Name  "%{OIDC_CLAIM_given_name}e"
+    RequestHeader unset X-User-Family-Name
+    RequestHeader set   X-User-Family-Name "%{OIDC_CLAIM_family_name}e"
     # Optional shared secret (must equal PROXY_AUTH_SHARED_SECRET in the app):
     # RequestHeader set X-Proxy-Secret "<SAME_SECRET_AS_APP>"
 

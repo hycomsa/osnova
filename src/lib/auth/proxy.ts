@@ -35,6 +35,12 @@ export function resolveProxyIdentity(headers: Headers): Identity | null {
   if (!email || !email.includes('@')) return null
   email = email.toLowerCase()
 
-  const name = headers.get(cfg.nameHeader)?.trim() || nameFromEmail(email)
+  // Name precedence: explicit full-name header → given + family composed → derived from email.
+  const composed = [headers.get(cfg.givenNameHeader), headers.get(cfg.familyNameHeader)]
+    .map((v) => v?.trim())
+    .filter(Boolean)
+    .join(' ')
+    .trim()
+  const name = headers.get(cfg.nameHeader)?.trim() || composed || nameFromEmail(email)
   return { subject: email, email, name }
 }

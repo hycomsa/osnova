@@ -7,6 +7,7 @@ const ENV_KEYS = [
   'PROXY_AUTH_HEADER', 'PROXY_AUTH_NAME_HEADER', 'PROXY_AUTH_SECRET_HEADER',
   'PROXY_AUTH_SHARED_SECRET', 'PROXY_AUTH_DEV_USER', 'ADMIN_EMAILS', 'NODE_ENV',
   'AUTH_MODE', 'PROXY_AUTH_OIDC_FALLBACK', 'KEYCLOAK_ISSUER',
+  'PROXY_AUTH_GIVEN_NAME_HEADER', 'PROXY_AUTH_FAMILY_NAME_HEADER',
 ] as const
 let saved: Record<string, string | undefined>
 const env = process.env as Record<string, string | undefined>
@@ -30,10 +31,23 @@ describe('resolveProxyIdentity', () => {
     expect(id).toEqual({ subject: 'jan.kowalski@klient.pl', email: 'jan.kowalski@klient.pl', name: 'Jan Kowalski' })
   })
 
-  it('uses the configured name header when present', () => {
-    process.env.PROXY_AUTH_NAME_HEADER = 'X-User-Name'
+  it('uses the configured full-name header when present', () => {
     const id = resolveProxyIdentity(H({ 'X-User-UPN': 'a@b.pl', 'X-User-Name': 'Anna Nowak' }))
     expect(id?.name).toBe('Anna Nowak')
+  })
+
+  it('composes given + family name when full name is absent', () => {
+    expect(resolveProxyIdentity(H({ 'X-User-UPN': 'a@b.pl', 'X-User-Given-Name': 'Anna', 'X-User-Family-Name': 'Nowak' }))?.name).toBe('Anna Nowak')
+    // only given present
+    expect(resolveProxyIdentity(H({ 'X-User-UPN': 'a@b.pl', 'X-User-Given-Name': 'Anna' }))?.name).toBe('Anna')
+  })
+
+  it('full-name header wins over given/family', () => {
+    expect(resolveProxyIdentity(H({ 'X-User-UPN': 'a@b.pl', 'X-User-Name': 'A. Nowak', 'X-User-Given-Name': 'Anna', 'X-User-Family-Name': 'Nowak' }))?.name).toBe('A. Nowak')
+  })
+
+  it('no name headers → derives from email', () => {
+    expect(resolveProxyIdentity(H({ 'X-User-UPN': 'jan.kowalski@x.pl' }))?.name).toBe('Jan Kowalski')
   })
 
   it('honours a custom header name', () => {
