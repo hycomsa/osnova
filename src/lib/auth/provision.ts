@@ -2,7 +2,8 @@ import type { Payload } from 'payload'
 import type { AppUser } from './request-user'
 
 // Federated identity provisioning, shared by both auth modes (proxy header + OIDC callback).
-// The Osnova `users` row is keyed on a vendor-neutral `subject` string:
+// The Osnova `users` row is keyed on a stable subject string, persisted in the legacy
+// `keycloakSub` column (kept for backward compatibility — no DB migration):
 //   - proxy mode: subject = the user's email (from the trusted header)
 //   - oidc mode:  subject = the OIDC `sub` claim
 
@@ -30,7 +31,7 @@ export async function upsertUser(payload: Payload, id: Identity): Promise<AppUse
 
   const existing = await payload.find({
     collection: 'users',
-    where: { subject: { equals: id.subject } },
+    where: { keycloakSub: { equals: id.subject } },
     limit: 1,
     overrideAccess: true,
   })
@@ -56,7 +57,7 @@ export async function upsertUser(payload: Payload, id: Identity): Promise<AppUse
 
   const created = await payload.create({
     collection: 'users',
-    data: { subject: id.subject, email, name, globalRoles },
+    data: { keycloakSub: id.subject, email, name, globalRoles },
     overrideAccess: true,
   })
   return created as AppUser

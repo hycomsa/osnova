@@ -104,8 +104,8 @@ function stubPayload() {
     creates: 0,
     updates: 0,
     find: async ({ where }: any) => {
-      const s = where?.subject?.equals
-      return { docs: users.filter((u) => u.subject === s) }
+      const s = where?.keycloakSub?.equals
+      return { docs: users.filter((u) => u.keycloakSub === s) }
     },
     create: async function (this: any, { data }: any) {
       this.creates++

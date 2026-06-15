@@ -42,7 +42,7 @@ export const Users: CollectionConfig = {
           if (!session) return { user: null }
           const found = await payload.find({
             collection: 'users',
-            where: { subject: { equals: session.sub } },
+            where: { keycloakSub: { equals: session.sub } },
             limit: 1,
             overrideAccess: true,
           })
@@ -62,7 +62,9 @@ export const Users: CollectionConfig = {
     delete: isSystemAdmin,
   },
   fields: [
-    { name: 'subject', type: 'text', label: 'Subject', required: true, unique: true, index: true, admin: { description: 'Stały identyfikator tożsamości: e-mail (tryb proxy) lub claim „sub" z OIDC.' } },
+    // Stały identyfikator tożsamości (kolumna `keycloak_sub` — nazwa historyczna, bez migracji):
+    // w trybie proxy to e-mail, w trybie OIDC claim „sub".
+    { name: 'keycloakSub', type: 'text', label: 'Subject', required: true, unique: true, index: true, admin: { description: 'Stały identyfikator tożsamości: e-mail (tryb proxy) lub claim „sub" z OIDC.' } },
     { name: 'email', type: 'email', label: 'E-mail', required: true },
     { name: 'name', type: 'text', label: 'Imię i nazwisko' },
     {

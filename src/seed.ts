@@ -66,15 +66,15 @@ async function run() {
     excludeGlobs: EXCLUDE.map((glob) => ({ glob })),
   })
 
-  const admin = await foc(payload, 'users', { subject: { equals: ADMIN_SUBJECT } }, {
-    subject: ADMIN_SUBJECT,
+  const admin = await foc(payload, 'users', { keycloakSub: { equals: ADMIN_SUBJECT } }, {
+    keycloakSub: ADMIN_SUBJECT,
     email: ADMIN_EMAIL,
     name: 'Seed Admin',
     globalRoles: ['system_admin'],
   })
 
-  const client = await foc(payload, 'users', { subject: { equals: CLIENT_SUBJECT } }, {
-    subject: CLIENT_SUBJECT,
+  const client = await foc(payload, 'users', { keycloakSub: { equals: CLIENT_SUBJECT } }, {
+    keycloakSub: CLIENT_SUBJECT,
     email: CLIENT_EMAIL,
     name: 'Test Client',
     globalRoles: [],

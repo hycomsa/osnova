@@ -152,7 +152,7 @@ export interface User {
   /**
    * Stały identyfikator tożsamości: e-mail (tryb proxy) lub claim „sub" z OIDC.
    */
-  subject: string;
+  keycloakSub: string;
   email: string;
   name?: string | null;
   locale?: ('pl' | 'en' | 'de') | null;
@@ -632,7 +632,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  subject?: T;
+  keycloakSub?: T;
   email?: T;
   name?: T;
   locale?: T;

@@ -28,7 +28,7 @@ export async function getRequestUser(req: NextRequest, payload: Payload): Promis
   if (!session) return null
   const found = await payload.find({
     collection: 'users',
-    where: { subject: { equals: session.sub } },
+    where: { keycloakSub: { equals: session.sub } },
     limit: 1,
     overrideAccess: true,
   })

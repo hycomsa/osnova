@@ -46,7 +46,7 @@ configuration.
 
 | Collection | Holds |
 |------------|-------|
-| `Users` | SSO-federated users (keyed on a vendor-neutral `subject`); locale and email-digest preference; global roles. |
+| `Users` | SSO-federated users, keyed on a stable subject (email in proxy mode, OIDC `sub` in oidc mode); locale and email-digest preference; global roles. |
 | `Workspaces` | Project containers (name, slug, default view). |
 | `Memberships` | User ↔ workspace role assignments. |
 | `RepoBindings` | Git repo per workspace (host, URL, branch, `credentialRef`). |
