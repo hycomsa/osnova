@@ -14,6 +14,7 @@ canonical reference.
 | `PAYLOAD_SECRET` | _random_ | Payload encryption/signing key. |
 | `SESSION_SECRET` | _random, ≥16 chars_ | HS256 signing key for the `osnova_session` JWT. |
 | `APP_URL` | `http://localhost:3000` | Public base URL; used for the OIDC redirect URI and links in emails. |
+| `NEXT_PUBLIC_AVATAR_URL_TEMPLATE` | _(empty)_ | Optional Gravatar-style avatar image URL with `{hash}` (md5 of lowercased email) and `{size}` placeholders, e.g. `https://avatar.example.com/avatar/{size}/{hash}.jpg`. Empty → initials. Build-time/public. |
 
 ### Authentication
 

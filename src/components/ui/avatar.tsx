@@ -1,3 +1,8 @@
+'use client'
+
+import { useState } from 'react'
+import { avatarUrlFor } from '@/lib/avatar'
+
 export function initials(name?: string | null, email?: string): string {
   const src = (name && name.trim()) || (email ? email.split('@')[0].replace(/[._-]+/g, ' ') : '')
   const parts = src.split(/\s+/).filter(Boolean)
@@ -16,9 +21,13 @@ function hueShift(seed?: string): number {
 
 export function Avatar({ name, email, size = 32 }: { name?: string | null; email?: string; size?: number }) {
   const shift = hueShift(email || name || '')
+  // request a crisp asset (avatar services expose fixed sizes; 96 covers small UI avatars)
+  const url = avatarUrlFor(email, size <= 96 ? 96 : 200)
+  const [imgFailed, setImgFailed] = useState(false)
+
   return (
     <span
-      className="grid shrink-0 place-items-center rounded-full font-semibold text-white shadow-sm ring-1 ring-black/5"
+      className="relative grid shrink-0 place-items-center overflow-hidden rounded-full font-semibold text-white shadow-sm ring-1 ring-black/5"
       style={{
         width: size,
         height: size,
@@ -27,7 +36,22 @@ export function Avatar({ name, email, size = 32 }: { name?: string | null; email
       }}
       aria-hidden
     >
+      {/* initials base — stays visible until (and unless) the image loads over it */}
       {initials(name, email)}
+      {url && !imgFailed && (
+        // plain <img> (no next/image) so any external avatar host works without config;
+        // on any load error we drop it and the initials remain.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt=""
+          width={size}
+          height={size}
+          loading="lazy"
+          onError={() => setImgFailed(true)}
+          className="absolute inset-0 h-full w-full rounded-full object-cover"
+        />
+      )}
     </span>
   )
 }
