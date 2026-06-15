@@ -84,7 +84,12 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    workspaces: {
+      viewConfigs: 'view-configs';
+      repoBindings: 'repo-bindings';
+    };
+  };
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     workspaces: WorkspacesSelect<false> | WorkspacesSelect<true>;
@@ -178,6 +183,68 @@ export interface Workspace {
    */
   slug?: string | null;
   defaultView: 'direct' | 'client_business' | 'client_technical';
+  viewConfigs?: {
+    docs?: (number | ViewConfig)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  repoBindings?: {
+    docs?: (number | RepoBinding)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "view-configs".
+ */
+export interface ViewConfig {
+  id: number;
+  workspace: number | Workspace;
+  /**
+   * Bezpośredni bez reguł = pełny dostęp (najbardziej permisywny). Widoki klienckie bez reguł = nic (fail-closed).
+   */
+  view: 'direct' | 'client_business' | 'client_technical';
+  includeGlobs?:
+    | {
+        glob: string;
+        id?: string | null;
+      }[]
+    | null;
+  excludeGlobs?:
+    | {
+        glob: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Gdy włączone, ten widok nie pokazuje katalogów zaczynających się od „_" (np. _input) ani plików, które mają taki katalog w ścieżce.
+   */
+  hideUnderscored?: boolean | null;
+  /**
+   * Gdy wyłączone (domyślnie dla wszystkich widoków), nagłówek metadanych dokumentu (author, content_hash, sha256, last_synced…) nie jest renderowany. Gdy włączone — metadane są pokazywane jako tabela.
+   */
+  showMetadata?: boolean | null;
+  source: 'hybrid' | 'docsconfig' | 'osnova';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "repo-bindings".
+ */
+export interface RepoBinding {
+  id: number;
+  workspace: number | Workspace;
+  host: 'gitlab' | 'github';
+  repoUrl: string;
+  branch: string;
+  /**
+   * Nazwa zmiennej środowiskowej z tokenem (np. GITLAB_TOKEN). Token NIE jest przechowywany w bazie.
+   */
+  credentialRef?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -236,58 +303,6 @@ export interface Membership {
    * Jeśli ustawione, zastępuje widoki wynikające z ról. Widok bezpośredni i tak tylko dla ról dostawcy/admina.
    */
   viewAccess?: ('direct' | 'client_business' | 'client_technical')[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "repo-bindings".
- */
-export interface RepoBinding {
-  id: number;
-  workspace: number | Workspace;
-  host: 'gitlab' | 'github';
-  repoUrl: string;
-  branch: string;
-  /**
-   * Nazwa zmiennej środowiskowej z tokenem (np. GITLAB_TOKEN). Token NIE jest przechowywany w bazie.
-   */
-  credentialRef?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "view-configs".
- */
-export interface ViewConfig {
-  id: number;
-  workspace: number | Workspace;
-  /**
-   * Bezpośredni bez reguł = pełny dostęp (najbardziej permisywny). Widoki klienckie bez reguł = nic (fail-closed).
-   */
-  view: 'direct' | 'client_business' | 'client_technical';
-  includeGlobs?:
-    | {
-        glob: string;
-        id?: string | null;
-      }[]
-    | null;
-  excludeGlobs?:
-    | {
-        glob: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Gdy włączone, ten widok nie pokazuje katalogów zaczynających się od „_" (np. _input) ani plików, które mają taki katalog w ścieżce.
-   */
-  hideUnderscored?: boolean | null;
-  /**
-   * Gdy wyłączone (domyślnie dla wszystkich widoków), nagłówek metadanych dokumentu (author, content_hash, sha256, last_synced…) nie jest renderowany. Gdy włączone — metadane są pokazywane jako tabela.
-   */
-  showMetadata?: boolean | null;
-  source: 'hybrid' | 'docsconfig' | 'osnova';
   updatedAt: string;
   createdAt: string;
 }
@@ -650,6 +665,8 @@ export interface WorkspacesSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   defaultView?: T;
+  viewConfigs?: T;
+  repoBindings?: T;
   updatedAt?: T;
   createdAt?: T;
 }

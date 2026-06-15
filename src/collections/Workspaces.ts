@@ -64,5 +64,22 @@ export const Workspaces: CollectionConfig = {
         { label: 'Kliencki — techniczny', value: 'client_technical' },
       ],
     },
+    // Odwrotne relacje (join) — listy powiązanych rekordów na stronie szczegółów workspace
+    // w /admin. Wirtualne (zapytanie po polu `workspace` w powiązanej kolekcji), bez zmian w DB.
+    {
+      name: 'viewConfigs',
+      type: 'join',
+      collection: 'view-configs',
+      on: 'workspace',
+      label: 'Konfiguracje widoków',
+      admin: { defaultColumns: ['view', 'source', 'hideUnderscored', 'showMetadata'] },
+    },
+    {
+      name: 'repoBindings',
+      type: 'join',
+      collection: 'repo-bindings',
+      on: 'workspace',
+      label: 'Powiązania repo',
+    },
   ],
 }
