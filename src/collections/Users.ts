@@ -1,6 +1,9 @@
 import type { CollectionConfig } from 'payload'
 import { anyLoggedIn, isSystemAdmin } from '../access'
 import { SESSION_COOKIE, verifySessionToken } from '../lib/session'
+import { authMode, proxyConfig } from '../lib/auth/mode'
+import { resolveProxyIdentity } from '../lib/auth/proxy'
+import { upsertUser } from '../lib/auth/provision'
 
 function parseCookies(header: string | null): Record<string, string> {
   const out: Record<string, string> = {}
@@ -19,8 +22,19 @@ export const Users: CollectionConfig = {
     disableLocalStrategy: true,
     strategies: [
       {
-        name: 'keycloak-session',
+        name: 'osnova-session',
         authenticate: async ({ payload, headers }) => {
+          // Proxy mode: trust the reverse-proxy identity header; find-or-create the user.
+          if (authMode() === 'proxy') {
+            const id = resolveProxyIdentity(headers)
+            if (id) {
+              const user = await upsertUser(payload, id)
+              return { user: { ...(user as any), collection: 'users' } }
+            }
+            // No header — fall back to the OIDC session cookie only if enabled.
+            if (!proxyConfig().oidcFallback) return { user: null }
+          }
+          // OIDC mode (or proxy + OIDC fallback): identity comes from the signed session cookie.
           const cookies = parseCookies(headers.get('cookie'))
           const token = cookies[SESSION_COOKIE]
           if (!token) return { user: null }
@@ -48,7 +62,9 @@ export const Users: CollectionConfig = {
     delete: isSystemAdmin,
   },
   fields: [
-    { name: 'keycloakSub', type: 'text', label: 'Keycloak sub', required: true, unique: true, index: true, admin: { description: 'Identyfikator użytkownika z Keycloak (claim „sub").' } },
+    // Stały identyfikator tożsamości (kolumna `keycloak_sub` — nazwa historyczna, bez migracji):
+    // w trybie proxy to e-mail, w trybie OIDC claim „sub".
+    { name: 'keycloakSub', type: 'text', label: 'Subject', required: true, unique: true, index: true, admin: { description: 'Stały identyfikator tożsamości: e-mail (tryb proxy) lub claim „sub" z OIDC.' } },
     { name: 'email', type: 'email', label: 'E-mail', required: true },
     { name: 'name', type: 'text', label: 'Imię i nazwisko' },
     {

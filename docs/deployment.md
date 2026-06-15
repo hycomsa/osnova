@@ -24,9 +24,13 @@ Keycloak for auth and Git remotes for content. This page covers a production rol
 - **`git` binary** on the host/image — the app shells out via `simple-git` to clone/fetch/push
   workspace repos. (Required at runtime, not just build.)
 - **PostgreSQL 16** (managed or self-hosted).
-- A reverse proxy (nginx/Caddy/Traefik) terminating **TLS** in front of the app on `:3000`.
-- **Network egress:** Git remote (HTTPS 443 / SSH 22), Keycloak (HTTPS), and — if enabled —
-  AI provider APIs (HTTPS) and SMTP. Keep PostgreSQL on a private network.
+- A reverse proxy (Apache/nginx/Caddy/Traefik) terminating **TLS** in front of the app. In the
+  default **proxy auth mode** the proxy also performs SSO and injects the identity header — see
+  [proxy-auth.md](proxy-auth.md) and the Apache example at
+  [`deploy/apache/osnova.conf.example`](../deploy/apache/osnova.conf.example). **Bind the app to
+  `127.0.0.1:3000`** so it is reachable only through the proxy.
+- **Network egress:** Git remote (HTTPS 443 / SSH 22); the OIDC provider (HTTPS) if
+  `AUTH_MODE=oidc`; and — if enabled — AI provider APIs (HTTPS) and SMTP. Keep PostgreSQL private.
 
 ## Build
 
@@ -53,10 +57,16 @@ Set at minimum (see [configuration.md](configuration.md)):
 
 - `DATABASE_URI` — production PostgreSQL.
 - `PAYLOAD_SECRET`, `SESSION_SECRET` — strong, unique secrets (`openssl rand -hex 32`).
-- `APP_URL` — the public HTTPS URL. The Keycloak client's redirect URI must be
-  `${APP_URL}/api/auth/callback`.
-- `KEYCLOAK_ISSUER`, `KEYCLOAK_CLIENT_ID` (+ `KEYCLOAK_CLIENT_SECRET` if confidential).
+- `APP_URL` — the public HTTPS URL (used for email links; in `oidc` mode also the OIDC
+  redirect-URI base — see below).
 - `ADMIN_EMAILS`.
+- **Auth** (`AUTH_MODE`, default `proxy`):
+  - *proxy mode:* `PROXY_AUTH_HEADER` (e.g. `X-User-UPN`) — the email header your proxy injects;
+    optionally `PROXY_AUTH_SHARED_SECRET`. See [proxy-auth.md](proxy-auth.md).
+  - *oidc mode:* `KEYCLOAK_ISSUER`, `KEYCLOAK_CLIENT_ID` (+ `KEYCLOAK_CLIENT_SECRET` if
+    confidential). The provider's redirect URI must be `${APP_URL}/api/auth/callback`, and
+    `APP_URL` **must** be the public HTTPS URL (the callback derives the token-exchange
+    `redirect_uri` from it — a wrong value shows as `?error=token_exchange`).
 - `WORKTREES_DIR` — a **persistent, writable** path (per-workspace Git clones live
   here). Size it for your repositories.
 - Credential env vars referenced by repo bindings (e.g. `GITLAB_TOKEN`).

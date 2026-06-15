@@ -177,7 +177,7 @@ git clone git@github.com:hycomsa/osnova.git && cd osnova
 docker compose up -d            # postgres:16 on localhost:5433
 
 # 3. Configure environment
-cp .env.example .env            # then edit Keycloak + secrets (+ ANTHROPIC_API_KEY for AI)
+cp .env.example .env            # set secrets; for local dev set PROXY_AUTH_DEV_USER (+ ANTHROPIC_API_KEY for AI)
 
 # 4. Install, seed, run
 npm install
@@ -185,7 +185,10 @@ npm run seed                    # creates a demo workspace + users
 npm run dev                     # http://localhost:3000
 ```
 
-You'll also need a **Keycloak** realm — see **[docs/keycloak.md](docs/keycloak.md)**.
+**Authentication** is pluggable (`AUTH_MODE`): the default **proxy** mode trusts a reverse-proxy
+SSO header (no IdP needed by the app) — see **[docs/proxy-auth.md](docs/proxy-auth.md)**; the
+optional **oidc** mode logs in via OpenID Connect — see **[docs/keycloak.md](docs/keycloak.md)**.
+For local dev in proxy mode, set `PROXY_AUTH_DEV_USER=you@example.com`.
 
 ## 📚 Documentation
 
@@ -193,7 +196,8 @@ You'll also need a **Keycloak** realm — see **[docs/keycloak.md](docs/keycloak
 |-------|---------------|
 | [Getting started](docs/getting-started.md) | Prerequisites, install, database, seed, first run. |
 | [Configuration](docs/configuration.md) | Every environment variable, view configs, repo bindings, mail, AI. |
-| [Keycloak setup](docs/keycloak.md) | Realm, client, redirect URIs, login i18n, troubleshooting. |
+| [Authentication](docs/proxy-auth.md) | Pluggable auth: reverse-proxy header SSO (default) + Apache example. |
+| [Keycloak setup](docs/keycloak.md) | Optional OIDC mode: realm, client, redirect URIs, login i18n. |
 | [Features](docs/features.md) | Full, illustrated feature catalogue. |
 | [Showcase](docs/showcase.md) | A visual product tour and marketing gallery. |
 | [Architecture](docs/architecture.md) | How the pieces fit; data model; access-control model. |
@@ -203,7 +207,7 @@ You'll also need a **Keycloak** realm — see **[docs/keycloak.md](docs/keycloak
 
 ## 🧱 Tech stack
 
-Next.js 15 (App Router, React 19) · PayloadCMS 3 · PostgreSQL 16 · Keycloak (OIDC) ·
+Next.js 16 (App Router, React 19) · PayloadCMS 3 · PostgreSQL 16 · SSO (proxy header / OIDC) ·
 TipTap · remark/rehype · Mermaid · simple-git (git-native worktrees) · Anthropic Claude ·
 react-i18next · Tailwind · Vitest · Playwright.
 

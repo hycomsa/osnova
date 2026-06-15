@@ -5,6 +5,7 @@ import { AppHeader } from '@/components/app-header'
 import { OsnovaMark } from '@/components/osnova-mark'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { oidcLoginAvailable } from '@/lib/auth/mode'
 import { LanguageSwitcher } from '@/i18n/client'
 import { getLocale, st } from '@/i18n/server'
 import { WorkspaceBrowser } from './components/WorkspaceBrowser'
@@ -51,9 +52,16 @@ export default async function Home() {
             <h1 className="text-3xl font-light tracking-[0.3em]">osnova</h1>
             <p className="text-sm text-muted-foreground">{t('home.tagline')}</p>
           </div>
-          <Button asChild size="lg" className="mt-2">
-            <a href="/api/auth/login">{t('auth.login')}</a>
-          </Button>
+          {oidcLoginAvailable() ? (
+            <Button asChild size="lg" className="mt-2">
+              <a href="/api/auth/login">{t('auth.login')}</a>
+            </Button>
+          ) : (
+            <div className="mt-2 space-y-1">
+              <p className="text-sm font-medium">{t('auth.notAuthenticated')}</p>
+              <p className="text-xs text-muted-foreground">{t('auth.contactAdmin')}</p>
+            </div>
+          )}
           <div className="mt-1 w-40">
             <LanguageSwitcher />
           </div>

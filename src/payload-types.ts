@@ -150,7 +150,7 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   /**
-   * Identyfikator użytkownika z Keycloak (claim „sub").
+   * Stały identyfikator tożsamości: e-mail (tryb proxy) lub claim „sub" z OIDC.
    */
   keycloakSub: string;
   email: string;

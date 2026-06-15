@@ -1,6 +1,10 @@
 # Keycloak setup
 
-Osnova authenticates users via Keycloak using OpenID Connect (authorization-code
+> **Optional — OIDC mode only.** This applies when `AUTH_MODE=oidc`. The default mode is
+> `proxy` (the app trusts a reverse-proxy SSO header and needs no Keycloak); see
+> [proxy-auth.md](proxy-auth.md). Keycloak is just one OIDC provider — any works.
+
+When `AUTH_MODE=oidc`, Osnova authenticates users via OpenID Connect (authorization-code
 flow with PKCE). Identities are federated into Osnova on first login; access is then
 governed by per-workspace roles (see [administration.md](administration.md)).
 

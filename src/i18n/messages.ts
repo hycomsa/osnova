@@ -3,7 +3,7 @@ import type { Locale } from './config'
 
 const pl = {
   common: { loading: 'Ładowanie…', cancel: 'Anuluj', save: 'Zapisz', close: 'Zamknij', search: 'Szukaj', back: 'Wstecz', next: 'Dalej', now: 'teraz' },
-  auth: { login: 'Logowanie', logout: 'Wyloguj', loggedInAs: 'Zalogowano jako' },
+  auth: { login: 'Logowanie', logout: 'Wyloguj', loggedInAs: 'Zalogowano jako', notAuthenticated: 'Brak aktywnej sesji', contactAdmin: 'Dostęp obsługuje firmowe SSO. Jeśli widzisz ten ekran, skontaktuj się z administratorem.' },
   nav: { workspaces: 'Workspace’y', admin: 'Administracja', newWorkspace: '+ Nowy workspace', allWorkspaces: 'Wszystkie workspace’y →', switchWorkspace: 'Przełącz workspace', menu: 'Menu', tileWorkspaces: 'Wszystkie workspace’y', tileMembers: 'Członkowie, role i uprawnienia', tileReports: 'Statystyki akceptacji dokumentów' },
   home: {
     tagline: 'git-native', noWorkspaces: 'Brak przypisanych workspace’ów.',
@@ -166,7 +166,7 @@ const pl = {
 
 const en: typeof pl = {
   common: { loading: 'Loading…', cancel: 'Cancel', save: 'Save', close: 'Close', search: 'Search', back: 'Back', next: 'Next', now: 'just now' },
-  auth: { login: 'Sign in', logout: 'Sign out', loggedInAs: 'Signed in as' },
+  auth: { login: 'Sign in', logout: 'Sign out', loggedInAs: 'Signed in as', notAuthenticated: 'No active session', contactAdmin: 'Access is handled by corporate SSO. If you see this screen, contact your administrator.' },
   nav: { workspaces: 'Workspaces', admin: 'Administration', newWorkspace: '+ New workspace', allWorkspaces: 'All workspaces →', switchWorkspace: 'Switch workspace', menu: 'Menu', tileWorkspaces: 'All workspaces', tileMembers: 'Members, roles & permissions', tileReports: 'Document acceptance statistics' },
   home: {
     tagline: 'git-native', noWorkspaces: 'No workspaces assigned.',
@@ -329,7 +329,7 @@ const en: typeof pl = {
 
 const de: typeof pl = {
   common: { loading: 'Wird geladen…', cancel: 'Abbrechen', save: 'Speichern', close: 'Schließen', search: 'Suchen', back: 'Zurück', next: 'Weiter', now: 'gerade eben' },
-  auth: { login: 'Anmelden', logout: 'Abmelden', loggedInAs: 'Angemeldet als' },
+  auth: { login: 'Anmelden', logout: 'Abmelden', loggedInAs: 'Angemeldet als', notAuthenticated: 'Keine aktive Sitzung', contactAdmin: 'Der Zugang wird über das Unternehmens-SSO verwaltet. Wenn Sie diesen Bildschirm sehen, wenden Sie sich an Ihren Administrator.' },
   nav: { workspaces: 'Workspaces', admin: 'Administration', newWorkspace: '+ Neuer Workspace', allWorkspaces: 'Alle Workspaces →', switchWorkspace: 'Workspace wechseln', menu: 'Menü', tileWorkspaces: 'Alle Workspaces', tileMembers: 'Mitglieder, Rollen & Rechte', tileReports: 'Statistik der Dokumentabnahme' },
   home: {
     tagline: 'git-native', noWorkspaces: 'Keine Workspaces zugewiesen.',
