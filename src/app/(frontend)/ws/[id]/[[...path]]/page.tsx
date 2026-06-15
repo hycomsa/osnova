@@ -540,7 +540,7 @@ function WorkspaceView() {
         <div className="relative" ref={styleRef}>
           <button onClick={() => setStylePop((s) => !s)} title={t('viewer.style')} aria-label={t('viewer.style')} className={rbtnCls(stylePop)}><Palette size={ic} /><RLabel>{t('viewer.style')}</RLabel></button>
           {stylePop && (
-            <div className="absolute right-0 z-30 mt-1.5 max-h-[70vh] w-80 overflow-auto rounded-xl border border-border bg-popover/95 p-1.5 shadow-xl backdrop-blur">
+            <div className="absolute left-0 z-50 mt-1.5 max-h-[70vh] w-80 overflow-auto rounded-xl border border-border bg-popover/95 p-1.5 shadow-xl backdrop-blur">
               <div className="px-1.5 pb-1 pt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{t('viewer.style')}</div>
               {THEMES.map((th) => (
                 <button key={th} onClick={() => { setTheme(th); setStylePop(false) }}
