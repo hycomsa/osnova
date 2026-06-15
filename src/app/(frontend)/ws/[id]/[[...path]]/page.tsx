@@ -26,16 +26,7 @@ import { useTranslation } from '@/i18n/client'
 import { cn } from '@/lib/utils'
 
 const THEMES = ['standard', 'full', 'reading', 'editorial', 'pastel', 'technical', 'terminal', 'neon'] as const
-const THEME_META: Record<(typeof THEMES)[number], { label: string; hint: string }> = {
-  standard: { label: 'Czysty', hint: 'neutralny, sans' },
-  full: { label: 'Pełna szerokość', hint: 'cała szerokość, szerokie tabele' },
-  reading: { label: 'Lektura', hint: 'serif, sepia, wąska kolumna' },
-  editorial: { label: 'Redakcyjny', hint: 'magazyn, duże nagłówki' },
-  pastel: { label: 'Pastel', hint: 'miękki, kolorowy' },
-  technical: { label: 'Techniczny', hint: 'gęsty, szeroki, mono' },
-  terminal: { label: 'Terminal', hint: 'ciemny, zielony mono' },
-  neon: { label: 'Neon', hint: 'ciemny, neon' },
-}
+// Etykiety/podpisy stylów są tłumaczone (i18n: styles.<theme>.label / .hint).
 const DOCSTYLE_KEY = 'osnova:docstyle'
 // podgląd stylu (kolory + realne czcionki — zgodne z docs-themes.css)
 const SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'
@@ -547,8 +538,8 @@ function WorkspaceView() {
                   className={`flex w-full items-center gap-3 rounded-lg p-1.5 text-left transition-colors hover:bg-secondary/70 ${theme === th ? 'bg-secondary/70 ring-1 ring-primary/30' : ''}`}>
                   <StyleSwatch s={th} />
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className={`text-sm ${theme === th ? 'font-medium text-primary' : ''}`}>{THEME_META[th].label}</span>
-                    <span className="truncate text-[11px] text-muted-foreground">{THEME_META[th].hint}</span>
+                    <span className={`text-sm ${theme === th ? 'font-medium text-primary' : ''}`}>{t(`styles.${th}.label`)}</span>
+                    <span className="truncate text-[11px] text-muted-foreground">{t(`styles.${th}.hint`)}</span>
                   </span>
                   {theme === th && <Check size={15} className="shrink-0 text-primary" />}
                 </button>
