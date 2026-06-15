@@ -23,8 +23,12 @@ export interface ProxyAuthConfig {
   // instead of the "no session" notice. Useful during migration or for users who reach the
   // app without going through the proxy. Requires the OIDC (KEYCLOAK_*) settings.
   oidcFallback: boolean
-  // Optional header carrying the user's display name.
+  // Optional header carrying the user's full display name.
   nameHeader: string
+  // Optional headers carrying the given (first) and family (last) name, composed into a full
+  // name when the full-name header is absent. Maps naturally to OIDC given_name/family_name claims.
+  givenNameHeader: string
+  familyNameHeader: string
   // Optional shared-secret defense: when `secret` is set, requests must also carry
   // `secretHeader` with the matching value, or they are rejected. Protects against a client
   // reaching the app directly (bypassing the proxy) and spoofing the identity header.
@@ -71,6 +75,8 @@ export function proxyConfig(): ProxyAuthConfig {
     header: trimmed(process.env.PROXY_AUTH_HEADER) ?? 'X-User-UPN',
     oidcFallback: oidcFallbackEnabled(),
     nameHeader: trimmed(process.env.PROXY_AUTH_NAME_HEADER) ?? 'X-User-Name',
+    givenNameHeader: trimmed(process.env.PROXY_AUTH_GIVEN_NAME_HEADER) ?? 'X-User-Given-Name',
+    familyNameHeader: trimmed(process.env.PROXY_AUTH_FAMILY_NAME_HEADER) ?? 'X-User-Family-Name',
     secretHeader: trimmed(process.env.PROXY_AUTH_SECRET_HEADER) ?? 'X-Proxy-Secret',
     secret: trimmed(process.env.PROXY_AUTH_SHARED_SECRET),
     devUser: trimmed(process.env.PROXY_AUTH_DEV_USER),
