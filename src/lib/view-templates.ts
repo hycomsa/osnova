@@ -29,7 +29,9 @@ export interface ViewTemplate {
   showMetadata: boolean
 }
 
+// showMetadata=false: frontmatter pokazujemy w dedykowanym panelu „Właściwości", a nie jako
+// tabelę wstrzykniętą na górę treści (to robi `showMetadata=true`).
 export const DEFAULT_VIEW_TEMPLATES: Record<'client_business' | 'client_technical', ViewTemplate> = {
-  client_business: { include: BUSINESS_INCLUDE, hideUnderscored: true, showMetadata: true },
-  client_technical: { include: TECHNICAL_INCLUDE, hideUnderscored: true, showMetadata: true },
+  client_business: { include: BUSINESS_INCLUDE, hideUnderscored: true, showMetadata: false },
+  client_technical: { include: TECHNICAL_INCLUDE, hideUnderscored: true, showMetadata: false },
 }
