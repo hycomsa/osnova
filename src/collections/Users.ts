@@ -56,6 +56,9 @@ export const Users: CollectionConfig = {
   labels: { singular: 'Użytkownik', plural: 'Użytkownicy' },
   admin: { useAsTitle: 'email', defaultColumns: ['email', 'name', 'globalRoles'], group: 'System' },
   access: {
+    // Wstęp do panelu /admin tylko dla system_admin (bez tego Payload wpuszcza każdego
+    // zalogowanego — w trybie proxy to dowolny user przepuszczony przez bramę).
+    admin: ({ req }) => Boolean(((req.user as any)?.globalRoles as string[] | undefined)?.includes('system_admin')),
     read: anyLoggedIn,
     create: isSystemAdmin,
     update: isSystemAdmin,
