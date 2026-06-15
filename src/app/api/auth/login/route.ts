@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as oidc from 'openid-client'
 import { keycloakConfig, redirectUri } from '@/lib/auth/keycloak'
+import { authMode } from '@/lib/auth/mode'
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config'
 
 export async function GET(req: NextRequest) {
+  // Proxy mode: there is no app-driven login — the reverse proxy authenticates the user.
+  if (authMode() === 'proxy') {
+    return NextResponse.redirect(new URL('/', process.env.APP_URL ?? req.url))
+  }
   const config = await keycloakConfig()
   const verifier = oidc.randomPKCECodeVerifier()
   const challenge = await oidc.calculatePKCECodeChallenge(verifier)

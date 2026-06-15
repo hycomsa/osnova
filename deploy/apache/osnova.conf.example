@@ -1,0 +1,66 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Osnova — Apache reverse proxy with header-based SSO (AUTH_MODE=proxy)
+#
+# The proxy is the ONLY public entry point. It authenticates the user against your
+# IdP (here: OpenID Connect via mod_auth_openidc — works with Entra ID / Office 365,
+# Keycloak, Okta, …), then forwards the request to the Osnova app together with a
+# trusted header carrying the user's email. Osnova reads that header and trusts it.
+#
+# Required Apache modules:
+#   a2enmod ssl proxy proxy_http headers auth_openidc
+#
+# SECURITY — all three are mandatory:
+#   1. Bind the Osnova app to 127.0.0.1 only (never expose :3000 publicly).
+#   2. Strip any client-supplied identity header BEFORE setting your own (done below
+#      with `RequestHeader unset` ahead of `RequestHeader set`).
+#   3. Optionally set PROXY_AUTH_SHARED_SECRET in the app and inject the same secret
+#      header here, so the app rejects any request that didn't come through the proxy.
+#
+# Replace every <PLACEHOLDER> below.
+# ─────────────────────────────────────────────────────────────────────────────
+
+<VirtualHost *:443>
+    ServerName <osnova.example.com>
+
+    SSLEngine on
+    SSLCertificateFile      /etc/ssl/certs/<osnova.example.com>.crt
+    SSLCertificateKeyFile   /etc/ssl/private/<osnova.example.com>.key
+
+    # ── OpenID Connect (mod_auth_openidc) ────────────────────────────────────
+    # Entra ID / Office 365 metadata:
+    #   https://login.microsoftonline.com/<TENANT_ID>/v2.0/.well-known/openid-configuration
+    OIDCProviderMetadataURL  <https://login.microsoftonline.com/TENANT_ID/v2.0/.well-known/openid-configuration>
+    OIDCClientID             <CLIENT_ID>
+    OIDCClientSecret         <CLIENT_SECRET>
+    OIDCRedirectURI          https://<osnova.example.com>/oauth2/callback
+    OIDCCryptoPassphrase     <RANDOM_LONG_SECRET>
+    OIDCScope                "openid email profile"
+    # Expose the email as REMOTE_USER and as the OIDC_CLAIM_* env vars used below.
+    OIDCRemoteUserClaim      email
+
+    <Location />
+        AuthType openid-connect
+        Require valid-user
+    </Location>
+
+    # ── Inject the trusted identity header ───────────────────────────────────
+    # Strip any inbound copy first (anti-spoofing), then set from the verified claim.
+    RequestHeader unset X-User-UPN
+    RequestHeader set   X-User-UPN  "%{OIDC_CLAIM_email}e"
+    RequestHeader unset X-User-Name
+    RequestHeader set   X-User-Name "%{OIDC_CLAIM_name}e"
+    # Optional shared secret (must equal PROXY_AUTH_SHARED_SECRET in the app):
+    # RequestHeader set X-Proxy-Secret "<SAME_SECRET_AS_APP>"
+
+    # ── Reverse proxy to the Osnova app (bound to localhost) ─────────────────
+    ProxyPreserveHost On
+    ProxyPass         /  http://127.0.0.1:3000/
+    ProxyPassReverse  /  http://127.0.0.1:3000/
+    RequestHeader set X-Forwarded-Proto "https"
+</VirtualHost>
+
+# Redirect plain HTTP to HTTPS.
+<VirtualHost *:80>
+    ServerName <osnova.example.com>
+    Redirect permanent / https://<osnova.example.com>/
+</VirtualHost>

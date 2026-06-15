@@ -15,8 +15,8 @@ configuration.
                 │   viewer · editor · tree     read-service · auth      /admin        │
                 └───────┬───────────────────────────┬───────────────────────┬────────┘
                         │                            │                       │
-                  Keycloak (OIDC)            Git worktrees             PostgreSQL 16
-                  login + ui_locales      data/worktrees/<id>      workspaces, members,
+                  SSO identity             Git worktrees             PostgreSQL 16
+              proxy header / OIDC        data/worktrees/<id>      workspaces, members,
                                           (clone of repo)          comments, approvals,
                                                                    notifications, …
 ```
@@ -46,7 +46,7 @@ configuration.
 
 | Collection | Holds |
 |------------|-------|
-| `Users` | Keycloak-federated users; locale and email-digest preference; global roles. |
+| `Users` | SSO-federated users (keyed on a vendor-neutral `subject`); locale and email-digest preference; global roles. |
 | `Workspaces` | Project containers (name, slug, default view). |
 | `Memberships` | User ↔ workspace role assignments. |
 | `RepoBindings` | Git repo per workspace (host, URL, branch, `credentialRef`). |

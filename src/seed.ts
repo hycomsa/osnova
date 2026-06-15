@@ -2,10 +2,12 @@ import { getPayload } from 'payload'
 import config from './payload.config'
 import { cloneDefaultSkillsToWorkspace, seedGlobalSkills } from './lib/ai/skills-service'
 
-// domyślnie realny sub użytkownika test-client@hycom.pl z Keycloak (realm osnova) — by browser-login działał
-const CLIENT_SUB = process.env.TEST_CLIENT_SUB || '7620cf79-f032-4e00-971e-afd7ff290e4c'
-const ADMIN_SUB = process.env.TEST_ADMIN_SUB || 'e2e-admin'
 const ADMIN_EMAIL = (process.env.ADMIN_EMAILS || 'admin@osnova.local').split(',')[0].trim()
+const CLIENT_EMAIL = process.env.TEST_CLIENT_EMAIL || 'test-client@hycom.pl'
+// `subject` = stały klucz tożsamości. W trybie proxy to e-mail; w trybie OIDC to claim „sub"
+// (ustaw wtedy TEST_ADMIN_SUBJECT/TEST_CLIENT_SUBJECT na realne sub-y, by browser-login mapował się na seed).
+const ADMIN_SUBJECT = process.env.TEST_ADMIN_SUBJECT || process.env.TEST_ADMIN_SUB || ADMIN_EMAIL
+const CLIENT_SUBJECT = process.env.TEST_CLIENT_SUBJECT || process.env.TEST_CLIENT_SUB || CLIENT_EMAIL
 
 const BIZ_INCLUDE = [
   '.ai/context/README.md',
@@ -64,16 +66,16 @@ async function run() {
     excludeGlobs: EXCLUDE.map((glob) => ({ glob })),
   })
 
-  const admin = await foc(payload, 'users', { keycloakSub: { equals: ADMIN_SUB } }, {
-    keycloakSub: ADMIN_SUB,
+  const admin = await foc(payload, 'users', { subject: { equals: ADMIN_SUBJECT } }, {
+    subject: ADMIN_SUBJECT,
     email: ADMIN_EMAIL,
     name: 'Seed Admin',
     globalRoles: ['system_admin'],
   })
 
-  const client = await foc(payload, 'users', { keycloakSub: { equals: CLIENT_SUB } }, {
-    keycloakSub: CLIENT_SUB,
-    email: 'test-client@hycom.pl',
+  const client = await foc(payload, 'users', { subject: { equals: CLIENT_SUBJECT } }, {
+    subject: CLIENT_SUBJECT,
+    email: CLIENT_EMAIL,
     name: 'Test Client',
     globalRoles: [],
   })
@@ -88,7 +90,7 @@ async function run() {
   await seedGlobalSkills(payload)
   await cloneDefaultSkillsToWorkspace(payload, ws.id)
 
-  console.log(`SEED_OK ws=${ws.id} admin=${admin.id}(${ADMIN_SUB}) client=${client.id}(${CLIENT_SUB})`)
+  console.log(`SEED_OK ws=${ws.id} admin=${admin.id}(${ADMIN_SUBJECT}) client=${client.id}(${CLIENT_SUBJECT})`)
   process.exit(0)
 }
 

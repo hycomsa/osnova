@@ -150,9 +150,9 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   /**
-   * Identyfikator użytkownika z Keycloak (claim „sub").
+   * Stały identyfikator tożsamości: e-mail (tryb proxy) lub claim „sub" z OIDC.
    */
-  keycloakSub: string;
+  subject: string;
   email: string;
   name?: string | null;
   locale?: ('pl' | 'en' | 'de') | null;
@@ -632,7 +632,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  keycloakSub?: T;
+  subject?: T;
   email?: T;
   name?: T;
   locale?: T;

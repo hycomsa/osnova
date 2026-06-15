@@ -15,14 +15,33 @@ canonical reference.
 | `SESSION_SECRET` | _random, ≥16 chars_ | HS256 signing key for the `osnova_session` JWT. |
 | `APP_URL` | `http://localhost:3000` | Public base URL; used for the OIDC redirect URI and links in emails. |
 
-### Keycloak / authentication
+### Authentication
+
+Osnova has two pluggable auth modes — see **[proxy-auth.md](proxy-auth.md)** for the full guide.
+
+| Variable | Example | Purpose |
+|----------|---------|---------|
+| `AUTH_MODE` | `proxy` | `proxy` (default — trust a reverse-proxy header) or `oidc` (app-driven OIDC login). |
+| `ADMIN_EMAILS` | `a@x.com,b@x.com` | Comma-separated; matching users get the `system_admin` global role (both modes). |
+
+**Proxy mode** (`AUTH_MODE=proxy`):
+
+| Variable | Example | Purpose |
+|----------|---------|---------|
+| `PROXY_AUTH_HEADER` | `X-User-UPN` | Header the proxy injects with the user's email. |
+| `PROXY_AUTH_NAME_HEADER` | `X-User-Name` | Optional display-name header. |
+| `PROXY_AUTH_SHARED_SECRET` | _(empty)_ | Optional anti-spoofing secret the proxy must also send. |
+| `PROXY_AUTH_SECRET_HEADER` | `X-Proxy-Secret` | Header carrying the shared secret. |
+| `PROXY_LOGOUT_URL` | _(empty)_ | Where `/api/auth/logout` redirects; empty = home. |
+| `PROXY_AUTH_DEV_USER` | _(empty)_ | Local dev only (ignored in production): act as this user without a proxy. |
+
+**OIDC mode** (`AUTH_MODE=oidc` only):
 
 | Variable | Example | Purpose |
 |----------|---------|---------|
 | `KEYCLOAK_ISSUER` | `https://auth.example.com/realms/osnova` | OIDC issuer (realm endpoint). |
 | `KEYCLOAK_CLIENT_ID` | `frontend` | OIDC client id. |
 | `KEYCLOAK_CLIENT_SECRET` | _(empty)_ | Only for **confidential** clients; leave empty for public/PKCE. |
-| `ADMIN_EMAILS` | `a@x.com,b@x.com` | Comma-separated; matching users get the `system_admin` global role on login. |
 
 See [keycloak.md](keycloak.md) for realm setup.
 
