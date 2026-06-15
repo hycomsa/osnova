@@ -42,18 +42,34 @@ const trimmed = (v: string | undefined): string | null => {
   return s ? s : null
 }
 
-const truthy = (v: string | undefined): boolean => ['1', 'true', 'yes', 'on'].includes((v ?? '').trim().toLowerCase())
+// Parse a boolean env var with an explicit default when unset/empty.
+const boolDefault = (v: string | undefined, def: boolean): boolean => {
+  const s = (v ?? '').trim().toLowerCase()
+  if (!s) return def
+  return ['1', 'true', 'yes', 'on'].includes(s)
+}
 
-// Whether the app-driven OIDC login flow should be offered: either we're in oidc mode, or
-// we're in proxy mode with the OIDC fallback enabled.
+// OIDC fallback in proxy mode defaults to ON (set PROXY_AUTH_OIDC_FALLBACK=false to disable).
+export function oidcFallbackEnabled(): boolean {
+  return boolDefault(process.env.PROXY_AUTH_OIDC_FALLBACK, true)
+}
+
+// An OIDC provider is configured (issuer present) — required for the app-driven login flow.
+export function oidcConfigured(): boolean {
+  return Boolean((process.env.KEYCLOAK_ISSUER ?? '').trim())
+}
+
+// Whether the app-driven OIDC login flow should be offered: oidc mode, or proxy mode with the
+// fallback enabled AND an OIDC provider actually configured (so we never show a broken button).
 export function oidcLoginAvailable(): boolean {
-  return authMode() === 'oidc' || (authMode() === 'proxy' && truthy(process.env.PROXY_AUTH_OIDC_FALLBACK))
+  if (authMode() === 'oidc') return true
+  return authMode() === 'proxy' && oidcFallbackEnabled() && oidcConfigured()
 }
 
 export function proxyConfig(): ProxyAuthConfig {
   return {
     header: trimmed(process.env.PROXY_AUTH_HEADER) ?? 'X-User-UPN',
-    oidcFallback: truthy(process.env.PROXY_AUTH_OIDC_FALLBACK),
+    oidcFallback: oidcFallbackEnabled(),
     nameHeader: trimmed(process.env.PROXY_AUTH_NAME_HEADER) ?? 'X-User-Name',
     secretHeader: trimmed(process.env.PROXY_AUTH_SECRET_HEADER) ?? 'X-Proxy-Secret',
     secret: trimmed(process.env.PROXY_AUTH_SHARED_SECRET),

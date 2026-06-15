@@ -39,17 +39,22 @@ PROXY_AUTH_SHARED_SECRET=             # optional; see "Security" below
 PROXY_AUTH_SECRET_HEADER=X-Proxy-Secret
 PROXY_LOGOUT_URL=                     # where /api/auth/logout sends the browser; empty = home
 PROXY_AUTH_DEV_USER=                  # local dev only (ignored in production)
-PROXY_AUTH_OIDC_FALLBACK=false        # if no header, offer OIDC login instead of a notice
+PROXY_AUTH_OIDC_FALLBACK=true         # if no header, offer OIDC login instead of a notice (default: true)
 ```
 
 ### OIDC fallback
 
-By default, a request without the identity header lands on a "no active session" notice. Set
-`PROXY_AUTH_OIDC_FALLBACK=true` to instead fall back to the app's OIDC login (see *OIDC mode*
-below) — the login screen shows a **Sign in** button, and `/api/auth/login`, `/api/auth/callback`
-and Keycloak sign-out all work alongside header auth. This needs the `KEYCLOAK_*` settings and is
-handy during migration, or for users who reach the app without passing through the proxy. With a
-proxy header present, the header always wins; the cookie is only consulted as a fallback.
+**On by default.** When a request arrives without the identity header, the app falls back to its
+OIDC login (see *OIDC mode* below) — the login screen shows a **Sign in** button, and
+`/api/auth/login`, `/api/auth/callback` and Keycloak sign-out all work alongside header auth.
+This is handy during migration, or for users who reach the app without passing through the proxy.
+
+- The fallback only **surfaces** when an OIDC provider is configured (`KEYCLOAK_ISSUER` set); on a
+  pure-proxy install without OIDC, a header-less request shows the "no active session" notice
+  instead of a broken button.
+- With a proxy header present, the **header always wins**; the session cookie is only consulted as
+  a fallback.
+- Set `PROXY_AUTH_OIDC_FALLBACK=false` to disable and always show the notice.
 
 The header names are configurable, so any gateway works: set `PROXY_AUTH_HEADER` to whatever
 your proxy injects (e.g. `X-Forwarded-Email` / `X-Auth-Request-Email` for oauth2-proxy, or a

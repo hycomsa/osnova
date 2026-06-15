@@ -6,7 +6,7 @@ import { authMode, oidcLoginAvailable } from '@/lib/auth/mode'
 const ENV_KEYS = [
   'PROXY_AUTH_HEADER', 'PROXY_AUTH_NAME_HEADER', 'PROXY_AUTH_SECRET_HEADER',
   'PROXY_AUTH_SHARED_SECRET', 'PROXY_AUTH_DEV_USER', 'ADMIN_EMAILS', 'NODE_ENV',
-  'AUTH_MODE', 'PROXY_AUTH_OIDC_FALLBACK',
+  'AUTH_MODE', 'PROXY_AUTH_OIDC_FALLBACK', 'KEYCLOAK_ISSUER',
 ] as const
 let saved: Record<string, string | undefined>
 const env = process.env as Record<string, string | undefined>
@@ -73,11 +73,16 @@ describe('auth mode + OIDC fallback', () => {
     expect(authMode()).toBe('oidc')
   })
 
-  it('oidcLoginAvailable: proxy → false; proxy+fallback → true; oidc → true', () => {
+  it('oidcLoginAvailable: needs an issuer in proxy mode; fallback defaults on; oidc always true', () => {
+    // proxy + fallback default(on) but NO issuer → not available (no broken button)
     expect(oidcLoginAvailable()).toBe(false)
-    process.env.PROXY_AUTH_OIDC_FALLBACK = 'true'
+    // proxy + issuer + fallback default(on) → available
+    process.env.KEYCLOAK_ISSUER = 'https://auth.example.com/realms/osnova'
     expect(oidcLoginAvailable()).toBe(true)
-    delete process.env.PROXY_AUTH_OIDC_FALLBACK
+    // explicit opt-out → not available
+    process.env.PROXY_AUTH_OIDC_FALLBACK = 'false'
+    expect(oidcLoginAvailable()).toBe(false)
+    // oidc mode → always available
     process.env.AUTH_MODE = 'oidc'
     expect(oidcLoginAvailable()).toBe(true)
   })
