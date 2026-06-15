@@ -5,7 +5,7 @@ import { AppHeader } from '@/components/app-header'
 import { OsnovaMark } from '@/components/osnova-mark'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { authMode } from '@/lib/auth/mode'
+import { oidcLoginAvailable } from '@/lib/auth/mode'
 import { LanguageSwitcher } from '@/i18n/client'
 import { getLocale, st } from '@/i18n/server'
 import { WorkspaceBrowser } from './components/WorkspaceBrowser'
@@ -52,7 +52,7 @@ export default async function Home() {
             <h1 className="text-3xl font-light tracking-[0.3em]">osnova</h1>
             <p className="text-sm text-muted-foreground">{t('home.tagline')}</p>
           </div>
-          {authMode() === 'oidc' ? (
+          {oidcLoginAvailable() ? (
             <Button asChild size="lg" className="mt-2">
               <a href="/api/auth/login">{t('auth.login')}</a>
             </Button>

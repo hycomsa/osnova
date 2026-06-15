@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server'
 import type { Payload } from 'payload'
 import { SESSION_COOKIE, verifySessionToken } from '../session'
-import { authMode } from './mode'
+import { authMode, proxyConfig } from './mode'
 import { resolveProxyIdentity } from './proxy'
 import { upsertUser } from './provision'
 
@@ -16,11 +16,12 @@ export async function getRequestUser(req: NextRequest, payload: Payload): Promis
   // Proxy mode: trust the reverse-proxy identity header; find-or-create the user.
   if (authMode() === 'proxy') {
     const id = resolveProxyIdentity(req.headers)
-    if (!id) return null
-    return upsertUser(payload, id)
+    if (id) return upsertUser(payload, id)
+    // No header — fall back to the OIDC session cookie only if enabled; else unauthenticated.
+    if (!proxyConfig().oidcFallback) return null
   }
 
-  // OIDC mode: identity comes from the signed session cookie.
+  // OIDC mode (or proxy + OIDC fallback): identity comes from the signed session cookie.
   const token = req.cookies.get(SESSION_COOKIE)?.value
   if (!token) return null
   const session = await verifySessionToken(token)

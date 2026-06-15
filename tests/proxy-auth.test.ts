@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { resolveProxyIdentity } from '@/lib/auth/proxy'
 import { computeGlobalRoles, upsertUser } from '@/lib/auth/provision'
+import { authMode, oidcLoginAvailable } from '@/lib/auth/mode'
 
 const ENV_KEYS = [
   'PROXY_AUTH_HEADER', 'PROXY_AUTH_NAME_HEADER', 'PROXY_AUTH_SECRET_HEADER',
   'PROXY_AUTH_SHARED_SECRET', 'PROXY_AUTH_DEV_USER', 'ADMIN_EMAILS', 'NODE_ENV',
+  'AUTH_MODE', 'PROXY_AUTH_OIDC_FALLBACK',
 ] as const
 let saved: Record<string, string | undefined>
 const env = process.env as Record<string, string | undefined>
@@ -61,6 +63,23 @@ describe('resolveProxyIdentity', () => {
     expect(resolveProxyIdentity(H({ 'X-User-UPN': 'a@b.pl' }))).toBeNull()
     expect(resolveProxyIdentity(H({ 'X-User-UPN': 'a@b.pl', 'X-Proxy-Secret': 'nope' }))).toBeNull()
     expect(resolveProxyIdentity(H({ 'X-User-UPN': 'a@b.pl', 'X-Proxy-Secret': 's3cr3t' }))?.email).toBe('a@b.pl')
+  })
+})
+
+describe('auth mode + OIDC fallback', () => {
+  it('defaults to proxy mode; oidc when AUTH_MODE=oidc', () => {
+    expect(authMode()).toBe('proxy')
+    process.env.AUTH_MODE = 'oidc'
+    expect(authMode()).toBe('oidc')
+  })
+
+  it('oidcLoginAvailable: proxy → false; proxy+fallback → true; oidc → true', () => {
+    expect(oidcLoginAvailable()).toBe(false)
+    process.env.PROXY_AUTH_OIDC_FALLBACK = 'true'
+    expect(oidcLoginAvailable()).toBe(true)
+    delete process.env.PROXY_AUTH_OIDC_FALLBACK
+    process.env.AUTH_MODE = 'oidc'
+    expect(oidcLoginAvailable()).toBe(true)
   })
 })
 

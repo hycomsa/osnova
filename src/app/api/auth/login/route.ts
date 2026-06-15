@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as oidc from 'openid-client'
 import { keycloakConfig, redirectUri } from '@/lib/auth/keycloak'
-import { authMode } from '@/lib/auth/mode'
+import { oidcLoginAvailable } from '@/lib/auth/mode'
 import { LOCALE_COOKIE, normalizeLocale } from '@/i18n/config'
 
 export async function GET(req: NextRequest) {
-  // Proxy mode: there is no app-driven login — the reverse proxy authenticates the user.
-  if (authMode() === 'proxy') {
+  // App-driven OIDC login runs in oidc mode, or in proxy mode with the OIDC fallback enabled.
+  // Otherwise (pure proxy) there is no app login — the reverse proxy authenticates the user.
+  if (!oidcLoginAvailable()) {
     return NextResponse.redirect(new URL('/', process.env.APP_URL ?? req.url))
   }
   const config = await keycloakConfig()

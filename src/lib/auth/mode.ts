@@ -19,6 +19,10 @@ export function authMode(): AuthMode {
 export interface ProxyAuthConfig {
   // Header carrying the authenticated user's email (their principal name / UPN).
   header: string
+  // When true, requests without the trusted header fall back to OIDC login (Keycloak),
+  // instead of the "no session" notice. Useful during migration or for users who reach the
+  // app without going through the proxy. Requires the OIDC (KEYCLOAK_*) settings.
+  oidcFallback: boolean
   // Optional header carrying the user's display name.
   nameHeader: string
   // Optional shared-secret defense: when `secret` is set, requests must also carry
@@ -38,9 +42,18 @@ const trimmed = (v: string | undefined): string | null => {
   return s ? s : null
 }
 
+const truthy = (v: string | undefined): boolean => ['1', 'true', 'yes', 'on'].includes((v ?? '').trim().toLowerCase())
+
+// Whether the app-driven OIDC login flow should be offered: either we're in oidc mode, or
+// we're in proxy mode with the OIDC fallback enabled.
+export function oidcLoginAvailable(): boolean {
+  return authMode() === 'oidc' || (authMode() === 'proxy' && truthy(process.env.PROXY_AUTH_OIDC_FALLBACK))
+}
+
 export function proxyConfig(): ProxyAuthConfig {
   return {
     header: trimmed(process.env.PROXY_AUTH_HEADER) ?? 'X-User-UPN',
+    oidcFallback: truthy(process.env.PROXY_AUTH_OIDC_FALLBACK),
     nameHeader: trimmed(process.env.PROXY_AUTH_NAME_HEADER) ?? 'X-User-Name',
     secretHeader: trimmed(process.env.PROXY_AUTH_SECRET_HEADER) ?? 'X-Proxy-Secret',
     secret: trimmed(process.env.PROXY_AUTH_SHARED_SECRET),

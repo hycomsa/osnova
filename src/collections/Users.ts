@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { anyLoggedIn, isSystemAdmin } from '../access'
 import { SESSION_COOKIE, verifySessionToken } from '../lib/session'
-import { authMode } from '../lib/auth/mode'
+import { authMode, proxyConfig } from '../lib/auth/mode'
 import { resolveProxyIdentity } from '../lib/auth/proxy'
 import { upsertUser } from '../lib/auth/provision'
 
@@ -27,11 +27,14 @@ export const Users: CollectionConfig = {
           // Proxy mode: trust the reverse-proxy identity header; find-or-create the user.
           if (authMode() === 'proxy') {
             const id = resolveProxyIdentity(headers)
-            if (!id) return { user: null }
-            const user = await upsertUser(payload, id)
-            return { user: { ...(user as any), collection: 'users' } }
+            if (id) {
+              const user = await upsertUser(payload, id)
+              return { user: { ...(user as any), collection: 'users' } }
+            }
+            // No header — fall back to the OIDC session cookie only if enabled.
+            if (!proxyConfig().oidcFallback) return { user: null }
           }
-          // OIDC mode: identity comes from the signed session cookie.
+          // OIDC mode (or proxy + OIDC fallback): identity comes from the signed session cookie.
           const cookies = parseCookies(headers.get('cookie'))
           const token = cookies[SESSION_COOKIE]
           if (!token) return { user: null }
