@@ -24,7 +24,7 @@ export function WorkspaceBrowser() {
   const { t } = useTranslation()
 
   useEffect(() => {
-    fetch('/api/workspaces')
+    fetch('/api/ws')
       .then((r) => (r.ok ? r.json() : { workspaces: [] }))
       .then((d) => { setWorkspaces(d.workspaces ?? []); setIsAdmin(Boolean(d.isSystemAdmin)) })
       .catch(() => setWorkspaces([]))

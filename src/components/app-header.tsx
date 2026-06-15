@@ -40,7 +40,7 @@ export function AppHeader({ workspace, onSearch }: { workspace?: { id?: string; 
   const toggleSwitcher = () => {
     setOpen((o) => !o)
     if (list === null) {
-      fetch('/api/workspaces').then((r) => (r.ok ? r.json() : { workspaces: [] }))
+      fetch('/api/ws').then((r) => (r.ok ? r.json() : { workspaces: [] }))
         .then((d) => setList(d.workspaces ?? [])).catch(() => setList([]))
     }
   }

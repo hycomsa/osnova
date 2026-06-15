@@ -87,7 +87,7 @@ export default function NewWorkspacePage() {
           .map((v) => ({ view: v, includeGlobs: toGlobs(views[v].include).map((g) => g.glob), hideUnderscored: views[v].hideUnderscored, showMetadata: views[v].showMetadata })),
         members: Object.entries(roleSel).filter(([, roles]) => roles.length).map(([user, roles]) => ({ user, roles })),
       }
-      const res = await postJSON('/api/workspaces', payload)
+      const res = await postJSON('/api/ws', payload)
       router.push(`/ws/${res.slug || res.id}`)
     } catch (e) {
       setError(String((e as Error).message))
