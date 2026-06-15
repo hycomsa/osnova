@@ -1,6 +1,7 @@
 import { getPayload } from 'payload'
 import config from './payload.config'
 import { cloneDefaultSkillsToWorkspace, seedGlobalSkills } from './lib/ai/skills-service'
+import { DEFAULT_VIEW_EXCLUDE, DEFAULT_VIEW_TEMPLATES } from './lib/view-templates'
 
 const ADMIN_EMAIL = (process.env.ADMIN_EMAILS || 'admin@osnova.local').split(',')[0].trim()
 const CLIENT_EMAIL = process.env.TEST_CLIENT_EMAIL || 'test-client@hycom.pl'
@@ -9,24 +10,11 @@ const CLIENT_EMAIL = process.env.TEST_CLIENT_EMAIL || 'test-client@hycom.pl'
 const ADMIN_SUBJECT = process.env.TEST_ADMIN_SUBJECT || process.env.TEST_ADMIN_SUB || ADMIN_EMAIL
 const CLIENT_SUBJECT = process.env.TEST_CLIENT_SUBJECT || process.env.TEST_CLIENT_SUB || CLIENT_EMAIL
 
-const BIZ_INCLUDE = [
-  '.ai/context/README.md',
-  '.ai/context/state.md',
-  '.ai/context/project-config.md',
-  '.ai/context/intent-specs/**',
-  '.ai/context/requirements/**',
-  '.ai/context/func-specs/**',
-]
-const TECH_INCLUDE = [
-  ...BIZ_INCLUDE,
-  '.ai/context/adrs/**',
-  '.ai/context/specs/**',
-  '.ai/context/references/**',
-  '.ai/context/environments/**',
-  '.ai/context/mockups/**',
-]
+// Wspólne szablony widoków (jedno źródło prawdy z kreatorem workspace'ów).
+const BIZ_INCLUDE = DEFAULT_VIEW_TEMPLATES.client_business.include
+const TECH_INCLUDE = DEFAULT_VIEW_TEMPLATES.client_technical.include
 // Domyślnie ukrywane w widokach klienckich (m.in. changelogi — szum techniczny dla klienta)
-const EXCLUDE = ['.ai/context/_input/**', '**/changelog.md']
+const EXCLUDE = DEFAULT_VIEW_EXCLUDE
 
 async function foc(payload: any, collection: string, where: any, data: any): Promise<any> {
   const found = await payload.find({ collection, where, limit: 1, overrideAccess: true })

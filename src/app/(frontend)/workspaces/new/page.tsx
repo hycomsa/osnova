@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
+import { DEFAULT_VIEW_TEMPLATES } from '@/lib/view-templates'
 import { useTranslation } from '@/i18n/client'
 
 interface UserRow { id: string | number; email: string; name?: string | null }
@@ -45,8 +46,8 @@ export default function NewWorkspacePage() {
   const [branch, setBranch] = useState('main')
   const [credentialRef, setCredentialRef] = useState('')
   const [views, setViews] = useState<Record<string, { enabled: boolean; include: string; hideUnderscored: boolean; showMetadata: boolean }>>({
-    client_business: { enabled: true, include: '**', hideUnderscored: true, showMetadata: false },
-    client_technical: { enabled: true, include: '**', hideUnderscored: true, showMetadata: false },
+    client_business: { enabled: true, include: DEFAULT_VIEW_TEMPLATES.client_business.include.join('\n'), hideUnderscored: DEFAULT_VIEW_TEMPLATES.client_business.hideUnderscored, showMetadata: DEFAULT_VIEW_TEMPLATES.client_business.showMetadata },
+    client_technical: { enabled: true, include: DEFAULT_VIEW_TEMPLATES.client_technical.include.join('\n'), hideUnderscored: DEFAULT_VIEW_TEMPLATES.client_technical.hideUnderscored, showMetadata: DEFAULT_VIEW_TEMPLATES.client_technical.showMetadata },
   })
   const [users, setUsers] = useState<UserRow[] | null>(null)
   const [roleSel, setRoleSel] = useState<Record<string, string[]>>({})
@@ -189,8 +190,12 @@ export default function NewWorkspacePage() {
                     {cfg.enabled && (
                       <div className="mt-2 space-y-2">
                         <div>
-                          <label className="mb-1 block text-xs text-muted-foreground">{t('wizard.includeLabel')}</label>
-                          <textarea value={cfg.include} onChange={(e) => set({ include: e.target.value })} rows={3}
+                          <div className="mb-1 flex items-center justify-between">
+                            <label className="block text-xs text-muted-foreground">{t('wizard.includeLabel')}</label>
+                            <button type="button" onClick={() => set({ include: DEFAULT_VIEW_TEMPLATES[v].include.join('\n'), hideUnderscored: DEFAULT_VIEW_TEMPLATES[v].hideUnderscored, showMetadata: DEFAULT_VIEW_TEMPLATES[v].showMetadata })}
+                              className="text-[11px] text-primary hover:underline">{t('wizard.resetTemplate')}</button>
+                          </div>
+                          <textarea value={cfg.include} onChange={(e) => set({ include: e.target.value })} rows={6}
                             className="w-full rounded-md border border-input bg-background p-2 font-mono text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
                         </div>
                         <div className="flex flex-wrap gap-4 text-xs">
