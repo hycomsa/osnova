@@ -56,3 +56,5 @@ node_modules/
 
 # Internal product docs — not for the OSS repo
 docs/PRD-*.md
+# Brainstorming/planning artifacts (prompts & intents used to build Osnova) — local only
+docs/superpowers/
