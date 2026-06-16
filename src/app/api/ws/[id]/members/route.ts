@@ -94,12 +94,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // Twarda reguła PRD: role klienckie nigdy nie dostają widoku bezpośredniego
     if (isClientOnly(roles)) viewAccess = viewAccess.filter((v) => v !== 'direct')
 
+    // user/workspace to relacje do kolekcji o całkowitych id — koercja na liczbę jest wymagana,
+    // bo walidacja relacji (sprawdzenie istnienia) z wartością tekstową „4" nie trafia w rekord
+    // i Payload zgłasza „pole nieprawidłowe: Użytkownik" (workspace był już koercjonowany — user nie).
+    const targetUserId = Number(targetUser)
+    if (!Number.isInteger(targetUserId)) return NextResponse.json({ error: 'Nieprawidłowy userId' }, { status: 400 })
     const existing = await payload.find({
       collection: 'memberships',
-      where: { and: [{ workspace: { equals: Number(ctx.workspaceId) } }, { user: { equals: targetUser } }] },
+      where: { and: [{ workspace: { equals: Number(ctx.workspaceId) } }, { user: { equals: targetUserId } }] },
       limit: 1, overrideAccess: true,
     })
-    const data = { workspace: Number(ctx.workspaceId), user: targetUser, roles, grantedPermissions: granted, revokedPermissions: revoked, viewAccess } as any
+    const data = { workspace: Number(ctx.workspaceId), user: targetUserId, roles, grantedPermissions: granted, revokedPermissions: revoked, viewAccess } as any
     if (existing.docs[0]) await payload.update({ collection: 'memberships', id: (existing.docs[0] as any).id, data, overrideAccess: true })
     else await payload.create({ collection: 'memberships', data, overrideAccess: true })
     void user
@@ -120,7 +125,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (String(targetUser) === String(user.id)) return NextResponse.json({ error: 'Nie możesz usunąć własnego członkostwa.' }, { status: 400 })
     const existing = await payload.find({
       collection: 'memberships',
-      where: { and: [{ workspace: { equals: Number(ctx.workspaceId) } }, { user: { equals: targetUser } }] },
+      where: { and: [{ workspace: { equals: Number(ctx.workspaceId) } }, { user: { equals: Number(targetUser) } }] },
       limit: 1, overrideAccess: true,
     })
     if (existing.docs[0]) await payload.delete({ collection: 'memberships', id: (existing.docs[0] as any).id, overrideAccess: true })
